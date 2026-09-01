@@ -1,9 +1,14 @@
-import { Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono, Google_Sans } from "next/font/google";
 import "@workspace/ui/globals.css";
 import { cn } from "@workspace/ui/lib/utils";
+import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const googleSans = Google_Sans({
+  subsets: ["latin", "thai"],
+  variable: "--font-sans",
+  weight: "variable",
+});
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -17,17 +22,18 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="th"
       suppressHydrationWarning
       className={cn(
         "antialiased",
         fontMono.variable,
         "font-sans",
-        inter.variable
+        googleSans.variable
       )}
     >
       <body>
         <ThemeProvider>{children}</ThemeProvider>
+        <TailwindIndicator />
       </body>
     </html>
   );
