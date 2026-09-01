@@ -1,0 +1,46 @@
+{
+  "name": "@workspace/eslint-config",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "exports": {
+    "./base": {
+      "types": "./dist/base.d.ts",
+      "import": "./dist/base.js",
+      "default": "./dist/base.js"
+    },
+    "./next-js": {
+      "types": "./dist/next.d.ts",
+      "import": "./dist/next.js",
+      "default": "./dist/next.js"
+    },
+    "./react-internal": {
+      "types": "./dist/react-internal.d.ts",
+      "import": "./dist/react-internal.js",
+      "default": "./dist/react-internal.js"
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9",
+    "@next/eslint-plugin-next": "^16.2.6",
+    "@workspace/typescript-config": "workspace:*",
+    "eslint": "^9",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-turbo": "^2.9.15",
+    "globals": "^17.6.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.60.0"
+  }
+}
