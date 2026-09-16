@@ -9,24 +9,29 @@ export const metadata = { title: "Poysian — คลังทีมแก้" };
 export default async function DesignPage({
   searchParams,
 }: {
-  searchParams: Promise<{ target?: string }>;
+  searchParams: Promise<{ target?: string; counter?: string }>;
 }) {
-  const [{ target: id }, cookieStore] = await Promise.all([
+  const [{ target: id, counter: counterId }, cookieStore] = await Promise.all([
     searchParams,
     cookies(),
   ]);
   const target = id ? targets.find((team) => team.id === id) : undefined;
+  const counters = target ? getCounters(target) : [];
+  const counter = counterId
+    ? counters.find((team) => team.id === counterId)
+    : undefined;
   const bannerExpanded =
     cookieStore.get(bannerExpandedCookieName)?.value !== "false";
 
-  if (id && !target) notFound();
+  if ((id && !target) || (counterId && !counter)) notFound();
 
   return (
     <DesignPreview
       bannerExpanded={bannerExpanded}
       targets={target ? [] : targets}
       target={target}
-      counters={target ? getCounters(target) : []}
+      counters={counters}
+      counter={counter}
     />
   );
 }

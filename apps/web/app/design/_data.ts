@@ -8,6 +8,40 @@ export const targetTeamTypes = [
 
 export type TargetTeamType = (typeof targetTeamTypes)[number]["value"];
 
+export const targetFormations = [
+  { value: "1-4", label: "1–4", backHeroCount: 2 },
+  { value: "3-2", label: "3–2", backHeroCount: 0 },
+  { value: "2-3", label: "2–3", backHeroCount: 1 },
+  { value: "4-1", label: "4–1", backHeroCount: 0 },
+] as const;
+
+export type TargetFormation = (typeof targetFormations)[number]["value"];
+
+export type PetPackage =
+  | [string]
+  | [string, string]
+  | [string, string, string]
+  | [string, string, string, string]
+  | [string, string, string, string, string];
+
+export type SkillOrder = {
+  hero: string;
+  slot: "T" | "B" | "A";
+  order: number;
+};
+
+export type SkillOrderSet =
+  | []
+  | [SkillOrder]
+  | [SkillOrder, SkillOrder]
+  | [SkillOrder, SkillOrder, SkillOrder];
+
+export type TargetVariants = {
+  speeds: Array<"เร็ว" | "ปกติ" | "ช้า">;
+  formations: TargetFormation[];
+  petPackages: PetPackage[];
+};
+
 export type Team = {
   id: string;
   title: string;
@@ -16,6 +50,9 @@ export type Team = {
   tags?: string[];
   heroes: Hero[];
   pet: string;
+  speedOrder?: string[];
+  skillOrder?: SkillOrderSet;
+  variants?: TargetVariants;
   condition: string;
   counters: number;
 };
@@ -25,6 +62,18 @@ const hero = (name: string, role: string, row: Hero["row"]): Hero => ({
   role,
   row,
 });
+
+const counterVariants = (
+  speed: TargetVariants["speeds"][number],
+  formation: TargetFormation,
+  pets: PetPackage
+): TargetVariants => ({
+  speeds: [speed],
+  formations: [formation],
+  petPackages: [pets],
+});
+
+const counterSkillOrder = (...skills: SkillOrderSet): SkillOrderSet => skills;
 
 export const targets: Team[] = [
   {
@@ -39,6 +88,15 @@ export const targets: Team[] = [
       hero("Rudy", "ป้องกัน", "front"),
     ],
     pet: "Irin",
+    variants: {
+      speeds: ["ปกติ", "เร็ว", "ช้า"],
+      formations: ["1-4", "2-3", "3-2"],
+      petPackages: [
+        ["Irin", "Pooki"],
+        ["Pooki", "Croa", "Irin", "Windy", "Lulu"],
+        ["Croa"],
+      ],
+    },
     condition: "ระวังการควบคุมจากแถวหลัง",
     counters: 2,
   },
@@ -54,6 +112,11 @@ export const targets: Team[] = [
       hero("Karin", "สนับสนุน", "front"),
     ],
     pet: "Croa",
+    variants: {
+      speeds: ["ปกติ", "เร็ว", "ช้า"],
+      formations: ["2-3", "1-4", "4-1"],
+      petPackages: [["Croa", "Irin"], ["Irin"], ["Pooki", "Croa"]],
+    },
     condition: "มีฮีลและตัวรับความเสียหาย",
     counters: 3,
   },
@@ -69,6 +132,11 @@ export const targets: Team[] = [
       hero("Vanessa", "สนับสนุน", "front"),
     ],
     pet: "Pooki",
+    variants: {
+      speeds: ["เร็ว", "ช้า"],
+      formations: ["1-4", "2-3"],
+      petPackages: [["Pooki", "Irin"], ["Croa"]],
+    },
     condition: "ตรวจสอบลำดับการออกสกิล",
     counters: 1,
   },
@@ -84,6 +152,11 @@ export const targets: Team[] = [
       hero("Chancellor", "ป้องกัน", "front"),
     ],
     pet: "Windy",
+    variants: {
+      speeds: ["ปกติ", "ช้า"],
+      formations: ["2-3", "1-4"],
+      petPackages: [["Windy", "Irin"], ["Irin"]],
+    },
     condition: "ทีมรับแน่น พร้อมสวนกลับ",
     counters: 1,
   },
@@ -99,6 +172,11 @@ export const targets: Team[] = [
       hero("Rachel", "โจมตี", "back"),
     ],
     pet: "Croa",
+    variants: {
+      speeds: ["เร็ว", "ช้า"],
+      formations: ["3-2", "2-3"],
+      petPackages: [["Croa", "Pooki", "Irin"], ["Pooki"]],
+    },
     condition: "สามตัวแถวหลัง เน้นความเสียหาย",
     counters: 0,
   },
@@ -114,6 +192,11 @@ export const targets: Team[] = [
       hero("Rachel", "โจมตี", "back"),
     ],
     pet: "Irin",
+    variants: {
+      speeds: ["ปกติ", "เร็ว"],
+      formations: ["2-3", "1-4"],
+      petPackages: [["Irin", "Windy"], ["Windy"]],
+    },
     condition: "ยื้อจังหวะด้วยฮีลและเกราะ",
     counters: 0,
   },
@@ -132,6 +215,19 @@ export function getCounters(target: Team): Team[] {
         hero("Karin", "สนับสนุน", "front"),
       ],
       pet: "Croa",
+      speedOrder: ["Teo", "Karma", "Karin"],
+      skillOrder: counterSkillOrder(
+        { hero: "Teo", slot: "T", order: 1 },
+        { hero: "Teo", slot: "B", order: 2 },
+        { hero: "Teo", slot: "A", order: 3 }
+      ),
+      variants: counterVariants("เร็ว", "2-3", [
+        "Croa",
+        "Irin",
+        "Windy",
+        "Pooki",
+        "Lulu",
+      ]),
       condition: "จัดความเร็วให้ตัวเปิดได้ออกสกิลก่อน และเตรียมต้านสถานะ",
       counters: 0,
     },
@@ -145,6 +241,13 @@ export function getCounters(target: Team): Team[] {
         hero("Karin", "สนับสนุน", "back"),
       ],
       pet: "Irin",
+      speedOrder: ["Rudy", "Rachel", "Karin"],
+      skillOrder: counterSkillOrder(
+        { hero: "Rudy", slot: "B", order: 1 },
+        { hero: "Rachel", slot: "T", order: 2 },
+        { hero: "Karin", slot: "A", order: 3 }
+      ),
+      variants: counterVariants("ช้า", "1-4", ["Irin", "Windy"]),
       condition: "ตัวรับต้องยืนผ่านชุดสกิลแรกได้ก่อนเริ่มสวนกลับ",
       counters: 0,
     },
@@ -158,6 +261,13 @@ export function getCounters(target: Team): Team[] {
         hero("Karin", "สนับสนุน", "front"),
       ],
       pet: "Croa",
+      speedOrder: ["Teo", "Karma", "Karin"],
+      skillOrder: counterSkillOrder(
+        { hero: "Teo", slot: "T", order: 1 },
+        { hero: "Karma", slot: "B", order: 2 },
+        { hero: "Karin", slot: "A", order: 3 }
+      ),
+      variants: counterVariants("เร็ว", "2-3", ["Croa", "Pooki"]),
       condition: "จัดความเร็วให้ตัวเปิดได้ออกสกิลก่อน และเตรียมต้านสถานะ",
       counters: 0,
     },
@@ -171,6 +281,13 @@ export function getCounters(target: Team): Team[] {
         hero("Karin", "สนับสนุน", "back"),
       ],
       pet: "Irin",
+      speedOrder: ["Rudy", "Rachel", "Karin"],
+      skillOrder: counterSkillOrder(
+        { hero: "Rudy", slot: "B", order: 1 },
+        { hero: "Rachel", slot: "T", order: 2 },
+        { hero: "Karin", slot: "A", order: 3 }
+      ),
+      variants: counterVariants("ช้า", "1-4", ["Irin", "Windy", "Pooki"]),
       condition: "ตัวรับต้องยืนผ่านชุดสกิลแรกได้ก่อนเริ่มสวนกลับ",
       counters: 0,
     },
