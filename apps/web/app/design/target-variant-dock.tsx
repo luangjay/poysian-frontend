@@ -43,7 +43,7 @@ import {
   PetChoice,
   withFormation,
 } from "./lineup";
-import { TeamTypeBadge, teamTypeTextClass } from "./team-card";
+import { TeamTypeBadge } from "./team-card";
 
 const speedOptions: Array<TargetVariants["speeds"][number]> = [
   "ปกติ",
@@ -125,9 +125,11 @@ function VariantSelector({
               aria-label={`เลือกรูปแบบ${title}`}
               render={
                 <Button
-                  // The card fills this button and owns the hover and focus
-                  // states, so the button contributes geometry only.
-                  className="group h-full w-full rounded-lg p-0 hover:bg-transparent focus-visible:border-transparent focus-visible:ring-0"
+                  // The cell inside owns every state and, now that it is a
+                  // fixed square, its size too — `h-full` here resolved
+                  // against the stack's full height and gave each trigger the
+                  // whole column. `h-auto` undoes the size variant's h-8.
+                  className="group h-auto w-auto rounded-lg p-0 hover:bg-transparent focus-visible:border-transparent focus-visible:ring-0"
                   variant="ghost"
                 />
               }
@@ -193,65 +195,72 @@ function TargetVariantDock({
           loading="eager"
           team={withFormation(team, selectedFormation)}
         />
-        <Lineup.Variants>
-          <VariantSelector
-            align="start"
-            dialogClassName="w-96"
-            title="ความเร็ว"
-            content={(close) => (
-              <FieldSet className="gap-2">
-                <FieldLegend className="sr-only">ความเร็ว</FieldLegend>
-                <RadioGroup
-                  aria-label="เลือกรูปแบบความเร็ว"
-                  className="grid grid-cols-3 gap-2"
-                  value={selectedSpeed}
-                  onValueChange={(value) => {
-                    if (typeof value === "string") {
-                      onSpeedChange(value as TargetVariants["speeds"][number]);
-                    }
-                  }}
-                >
-                  {speedOptions.map((speed) => {
-                    const available = variants.speeds.includes(speed);
-                    return (
-                      <FieldLabel
-                        key={speed}
-                        className="relative h-full has-data-checked:border-primary"
-                        onPointerUp={available ? close : undefined}
-                      >
-                        <Field
-                          data-disabled={!available || undefined}
-                          className="items-center justify-center text-center"
+        <Lineup.Variants
+          speed={
+            <VariantSelector
+              align="start"
+              dialogClassName="w-96"
+              title="ความเร็ว"
+              content={(close) => (
+                <FieldSet className="gap-2">
+                  <FieldLegend className="sr-only">ความเร็ว</FieldLegend>
+                  <RadioGroup
+                    aria-label="เลือกรูปแบบความเร็ว"
+                    className="grid grid-cols-3 gap-2"
+                    value={selectedSpeed}
+                    onValueChange={(value) => {
+                      if (typeof value === "string") {
+                        onSpeedChange(
+                          value as TargetVariants["speeds"][number]
+                        );
+                      }
+                    }}
+                  >
+                    {speedOptions.map((speed) => {
+                      const available = variants.speeds.includes(speed);
+                      return (
+                        <FieldLabel
+                          key={speed}
+                          className="relative h-full has-data-checked:border-primary"
+                          onPointerUp={available ? close : undefined}
                         >
-                          <FieldContent className="items-center justify-center">
-                            <FieldTitle>{speed}</FieldTitle>
-                          </FieldContent>
-                          <RadioGroupItem
-                            className="sr-only!"
-                            disabled={!available}
-                            value={speed}
-                          />
-                        </Field>
-                        <SelectedMark />
-                      </FieldLabel>
-                    );
-                  })}
-                </RadioGroup>
-              </FieldSet>
-            )}
-          >
-            <Lineup.Speed value={selectedSpeed} />
-          </VariantSelector>
-
-          <VariantSelector
-            // Wide enough for the companion row: 40 + 4 + 40 inside a
-            // third of the card, once its padding is taken out.
-            contentClassName="w-96"
-            title="สัตว์เลี้ยง"
-            content={(close) => (
-              <FieldSet className="gap-2">
-                <FieldLegend className="sr-only">สัตว์เลี้ยง</FieldLegend>
-                {/* Two per view, the rest on a scroll. A real scrollport over
+                          <Field
+                            data-disabled={!available || undefined}
+                            className="items-center justify-center text-center"
+                          >
+                            <FieldContent className="items-center justify-center">
+                              <FieldTitle>{speed}</FieldTitle>
+                            </FieldContent>
+                            <RadioGroupItem
+                              className="sr-only!"
+                              disabled={!available}
+                              value={speed}
+                            />
+                          </Field>
+                          <SelectedMark />
+                        </FieldLabel>
+                      );
+                    })}
+                  </RadioGroup>
+                </FieldSet>
+              )}
+            >
+              <Lineup.Speed value={selectedSpeed} />
+            </VariantSelector>
+          }
+          pets={
+            <VariantSelector
+              // Both right-column triggers sit at the surface's edge, so their
+              // popups have to grow inward rather than centre on an 80px tile.
+              align="end"
+              // Wide enough for the companion row: 40 + 4 + 40 inside a
+              // third of the card, once its padding is taken out.
+              contentClassName="w-96"
+              title="สัตว์เลี้ยง"
+              content={(close) => (
+                <FieldSet className="gap-2">
+                  <FieldLegend className="sr-only">สัตว์เลี้ยง</FieldLegend>
+                  {/* Two per view, the rest on a scroll. A real scrollport over
                     a carousel: arrow-keying a RadioGroup moves focus, and the
                     browser scrolls a focused option into view for free — an
                     embla track would leave focus on a slide you cannot see.
@@ -281,122 +290,134 @@ function TargetVariantDock({
                     which clips on every side once overflow-x is set; -mt-1
                     hands that space back so the row keeps the popup's own
                     rhythm instead of sitting 4px below it. */}
-                <ScrollArea
-                  className="-mx-(--popup-pad) -mt-1 -mb-(--popup-pad) overflow-hidden rounded-b-(--popup-radius)"
-                  orientation="horizontal"
-                >
+                  <ScrollArea
+                    className="-mx-(--popup-pad) -mt-1 -mb-(--popup-pad) overflow-hidden rounded-b-(--popup-radius)"
+                    orientation="horizontal"
+                  >
+                    <RadioGroup
+                      aria-label="เลือกสัตว์เลี้ยง"
+                      className="flex gap-(--popup-pad) pt-1 pb-4 before:w-0 before:shrink-0 before:content-[''] after:-ml-px after:w-px after:shrink-0 after:content-['']"
+                      value={selectedPetPackage.join("|")}
+                      onValueChange={(value) => {
+                        if (typeof value === "string") {
+                          const pets = variants.petPackages.find(
+                            (option) => option.join("|") === value
+                          );
+                          if (pets) {
+                            onPetPackageChange(pets);
+                          }
+                        }
+                      }}
+                    >
+                      {variants.petPackages.map((pets) => (
+                        <FieldLabel
+                          key={pets.join("|")}
+                          onPointerUp={close}
+                          className={cn(
+                            optionCard,
+                            "shrink-0 basis-[calc(50%-var(--popup-pad)*1.5)]"
+                          )}
+                        >
+                          <Field className="h-full items-center justify-between gap-0 text-center">
+                            <FieldContent className="items-center justify-center p-2.5">
+                              <PetChoice pets={pets} />
+                            </FieldContent>
+                            <span className={optionCaption}>
+                              {pets[0]}
+                              {pets.length > 1 ? (
+                                <span className="text-muted-foreground">
+                                  {" "}
+                                  +{pets.length - 1}
+                                </span>
+                              ) : null}
+                              <span className="sr-only">{pets.join(", ")}</span>
+                            </span>
+                            <RadioGroupItem
+                              className="sr-only!"
+                              value={pets.join("|")}
+                            />
+                          </Field>
+                          <SelectedMark />
+                        </FieldLabel>
+                      ))}
+                    </RadioGroup>
+                  </ScrollArea>
+                </FieldSet>
+              )}
+            >
+              <Lineup.Pets pets={selectedPetPackage} />
+            </VariantSelector>
+          }
+          formation={
+            <VariantSelector
+              align="end"
+              dialogClassName="w-96"
+              title="แผนการรบ"
+              content={(close) => (
+                <FieldSet className="gap-2">
+                  <FieldLegend className="sr-only">แผนการรบ</FieldLegend>
                   <RadioGroup
-                    aria-label="เลือกสัตว์เลี้ยง"
-                    className="flex gap-(--popup-pad) pt-1 pb-4 before:w-0 before:shrink-0 before:content-[''] after:-ml-px after:w-px after:shrink-0 after:content-['']"
-                    value={selectedPetPackage.join("|")}
+                    aria-label="เลือกแผนการรบ"
+                    className="grid grid-cols-2 gap-2"
+                    value={selectedFormation}
                     onValueChange={(value) => {
                       if (typeof value === "string") {
-                        const pets = variants.petPackages.find(
-                          (option) => option.join("|") === value
-                        );
-                        if (pets) {
-                          onPetPackageChange(pets);
-                        }
+                        onFormationChange(value as TargetFormation);
                       }
                     }}
                   >
-                    {variants.petPackages.map((pets) => (
-                      <FieldLabel
-                        key={pets.join("|")}
-                        onPointerUp={close}
-                        className={cn(
-                          optionCard,
-                          "shrink-0 basis-[calc(50%-var(--popup-pad)*1.5)]"
-                        )}
-                      >
-                        <Field className="h-full items-center justify-between gap-0 text-center">
-                          <FieldContent className="items-center justify-center p-2.5">
-                            <PetChoice pets={pets} />
-                          </FieldContent>
-                          <span className={optionCaption}>
-                            {pets[0]}
-                            {pets.length > 1 ? (
-                              <span className="text-muted-foreground">
-                                {" "}
-                                +{pets.length - 1}
-                              </span>
-                            ) : null}
-                            <span className="sr-only">{pets.join(", ")}</span>
-                          </span>
-                          <RadioGroupItem
-                            className="sr-only!"
-                            value={pets.join("|")}
-                          />
-                        </Field>
-                        <SelectedMark />
-                      </FieldLabel>
-                    ))}
-                  </RadioGroup>
-                </ScrollArea>
-              </FieldSet>
-            )}
-          >
-            <Lineup.Pets pets={selectedPetPackage} />
-          </VariantSelector>
-
-          <VariantSelector
-            align="end"
-            dialogClassName="w-96"
-            title="แผนการรบ"
-            content={(close) => (
-              <FieldSet className="gap-2">
-                <FieldLegend className="sr-only">แผนการรบ</FieldLegend>
-                <RadioGroup
-                  aria-label="เลือกแผนการรบ"
-                  className="grid grid-cols-2 gap-2"
-                  value={selectedFormation}
-                  onValueChange={(value) => {
-                    if (typeof value === "string") {
-                      onFormationChange(value as TargetFormation);
-                    }
-                  }}
-                >
-                  {formationOptions.map((formation) => {
-                    const available = variants.formations.includes(formation);
-                    return (
-                      <FieldLabel
-                        key={formation}
-                        className={optionCard}
-                        onPointerUp={available ? close : undefined}
-                      >
-                        <Field
-                          data-disabled={!available || undefined}
-                          className="h-full items-center justify-between gap-0 text-center"
+                    {formationOptions.map((formation) => {
+                      const available = variants.formations.includes(formation);
+                      return (
+                        <FieldLabel
+                          key={formation}
+                          className={optionCard}
+                          onPointerUp={available ? close : undefined}
                         >
-                          <FieldContent className="items-center justify-center p-2.5">
-                            <FormationPreview formation={formation} />
-                          </FieldContent>
-                          <span className={optionCaption}>
-                            {formationLabel(formation)}
-                          </span>
-                          <RadioGroupItem
-                            className="sr-only!"
-                            disabled={!available}
-                            value={formation}
-                          />
-                        </Field>
-                        <SelectedMark />
-                      </FieldLabel>
-                    );
-                  })}
-                </RadioGroup>
-              </FieldSet>
-            )}
-          >
-            <Lineup.Formation formation={selectedFormation} />
-          </VariantSelector>
-        </Lineup.Variants>
+                          {/* Field only dims a FieldTitle on its own, which
+                              the speed options have and this one does not —
+                              its content is a sprite and a caption bar, so the
+                              whole cell carries the state instead. */}
+                          <Field
+                            data-disabled={!available || undefined}
+                            className="h-full items-center justify-between gap-0 text-center data-disabled:opacity-50"
+                          >
+                            <FieldContent className="items-center justify-center p-2.5">
+                              <FormationPreview formation={formation} />
+                            </FieldContent>
+                            <span className={optionCaption}>
+                              {formationLabel(formation)}
+                            </span>
+                            <RadioGroupItem
+                              className="sr-only!"
+                              disabled={!available}
+                              value={formation}
+                            />
+                          </Field>
+                          <SelectedMark />
+                        </FieldLabel>
+                      );
+                    })}
+                  </RadioGroup>
+                </FieldSet>
+              )}
+            >
+              <Lineup.Formation formation={selectedFormation} />
+            </VariantSelector>
+          }
+        />
       </Lineup.Surface>
     </section>
   );
 }
 
-export function TargetSummary({ team }: { team: Team }) {
+export function TargetSummary({
+  backLink,
+  team,
+}: {
+  backLink: ReactNode;
+  team: Team;
+}) {
   const variants: TargetVariants = team.variants ?? {
     speeds: ["ปกติ"],
     formations: ["2-3"],
@@ -417,38 +438,59 @@ export function TargetSummary({ team }: { team: Team }) {
        flush with the container edge instead of floating inside a wider track. */
     <section
       aria-labelledby="target-summary-title"
-      className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_28rem] lg:gap-8"
+      className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_28rem] lg:gap-x-8 lg:gap-y-3"
     >
+      {/* A cell of its own in the text column's first row, rather than a
+          zero-height box overhanging it. The lineup spans both rows, so the
+          top of the surface still lines up with the top of the link. */}
+      <div className="lg:col-start-1 lg:row-start-1">{backLink}</div>
       {/* Stacked, the title has to name the lineup before you meet it. It takes
           the surface's own max-w-md and centres as a block, so the two rows
           share both edges and every line here starts on the lineup's left edge
           — centring the text instead would leave four separately centred
-          shapes with no spine. Side by side from lg, the two read at once.
-          `lg:pt-9` clears the back link overhanging this column. */}
-      <div className="mx-auto grid w-full max-w-md gap-2 lg:col-start-1 lg:row-start-1 lg:mx-0 lg:max-w-none lg:pt-9">
-        <p className={cn("text-xs font-medium", teamTypeTextClass(team))}>
-          ทีมเป้าหมาย
-        </p>
-        <h1
-          id="target-summary-title"
-          className="text-2xl font-semibold tracking-tight"
-        >
-          {team.title}
-        </h1>
-        <div className="flex flex-wrap gap-1.5">
-          <TeamTypeBadge team={team} />
+          shapes with no spine.
+
+          Side by side from lg it caps at max-w-sm, which keeps the measure
+          deliberate rather than leaving a ragged edge partway across a 30rem
+          column. It sits at the top of its row under the back link: centring
+          was worth it when the lineup ran past 400px, but the surface now has
+          a 240px floor, so the leftover beneath is small enough that splitting
+          it only reads as the title hanging low. */}
+      <div className="mx-auto grid w-full max-w-md gap-3 lg:col-start-1 lg:row-start-2 lg:mx-0 lg:max-w-sm">
+        {/* Plain, not tinted by team type: the badge below already spends
+            that colour on the type, and two different facts wearing one colour
+            8px apart read as one. */}
+        <div className="grid gap-1">
+          <p className="text-xs font-medium text-muted-foreground">
+            ทีมเป้าหมาย
+          </p>
+          <h1
+            id="target-summary-title"
+            className="text-2xl font-semibold tracking-tight"
+          >
+            {team.title}
+          </h1>
+        </div>
+        {/* Bigger than the card's badges: here they sit under a text-2xl
+            title and beside a text-base lead, not in a dense grid. */}
+        <div className="flex flex-wrap gap-2">
+          <TeamTypeBadge className="h-6 px-2.5 text-sm" team={team} />
           {team.tags?.map((tag) => (
-            <Badge key={tag} className="rounded-md" variant="outline">
+            <Badge
+              key={tag}
+              className="h-6 rounded-md px-2.5 text-sm"
+              variant="outline"
+            >
               {tag}
             </Badge>
           ))}
         </div>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="text-base leading-relaxed text-muted-foreground">
           {team.condition}
         </p>
       </div>
       <TargetVariantDock
-        className="mx-auto w-full max-w-md lg:col-start-2 lg:row-start-1"
+        className="mx-auto w-full max-w-md lg:col-start-2 lg:row-start-1 lg:row-end-3"
         team={team}
         variants={variants}
         selectedSpeed={selectedSpeed}

@@ -30,13 +30,16 @@ export function teamTypeTextClass(team: Pick<Team, "targetType">) {
 }
 
 export function TeamTypeBadge({
+  className,
   team,
 }: {
+  /** For sizing only — the colour is the badge's whole job. */
+  className?: string;
   team: Pick<Team, "targetType" | "type">;
 }) {
   if (!team.targetType) {
     return (
-      <Badge className="rounded-full" variant="secondary">
+      <Badge className={cn("rounded-full", className)} variant="secondary">
         {team.type}
       </Badge>
     );
@@ -44,7 +47,11 @@ export function TeamTypeBadge({
 
   return (
     <Badge
-      className={cn("rounded-full", teamTypeColor[team.targetType].badge)}
+      className={cn(
+        "rounded-full",
+        teamTypeColor[team.targetType].badge,
+        className
+      )}
       variant="default"
     >
       {team.type}
@@ -145,7 +152,7 @@ export function TeamCard({
               aria-hidden="true"
               className="size-2 rounded-full bg-primary"
             />
-            ใช้ตัวร่วม {sharedCount}
+            ใช้ตัวร่วมกัน {sharedCount}
           </Badge>
         ) : (
           <span />

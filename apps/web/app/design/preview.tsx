@@ -266,11 +266,11 @@ function CounterStrategy({ target, team }: { target: Team; team: Team }) {
             sharedHeroNames={target.heroes.map((hero) => hero.name)}
             team={team}
           />
-          <Lineup.Variants>
-            <Lineup.Speed value={selectedSpeed} />
-            <Lineup.Pets pets={selectedPets} />
-            <Lineup.Formation formation={selectedFormation} />
-          </Lineup.Variants>
+          <Lineup.Variants
+            speed={<Lineup.Speed value={selectedSpeed} />}
+            pets={<Lineup.Pets pets={selectedPets} />}
+            formation={<Lineup.Formation formation={selectedFormation} />}
+          />
         </Lineup.Surface>
         <PlaySequence
           skillOrder={team.skillOrder ?? []}
@@ -283,9 +283,9 @@ function CounterStrategy({ target, team }: { target: Team; team: Team }) {
 
 /**
  * A way out, not a destination — so it carries no chrome at rest and only
- * picks up a hover surface. On the target view the wrapper collapses to zero
- * height from `lg`: the link then overhangs the text column, which leaves the
- * top of the page to the lineup.
+ * picks up a hover surface. A bare link with no wrapper: the target view hands
+ * it to the hero grid as a cell and the counter view gives it a row, so
+ * neither needs a box, a collapsed height or a compensating padding.
  */
 function BackLink({
   className,
@@ -297,24 +297,20 @@ function BackLink({
   label: string;
 }) {
   return (
-    // `relative` is load-bearing: with `lg:h-0` the link overhangs the grid
-    // that follows it, and a static box loses hit-testing to a later sibling
-    // painted over it — the text column's padding was swallowing the clicks.
-    <div className={cn("relative z-10 mb-6", className)}>
-      <Link
-        href={href}
-        className={cn(
-          buttonVariants({
-            variant: "link",
-            size: "sm",
-            className: "w-fit px-0 text-muted-foreground",
-          })
-        )}
-      >
-        <ArrowLeftIcon data-icon="inline-start" />
-        {label}
-      </Link>
-    </div>
+    <Link
+      href={href}
+      className={cn(
+        buttonVariants({
+          variant: "link",
+          size: "sm",
+          className: "w-fit px-0 text-muted-foreground",
+        }),
+        className
+      )}
+    >
+      <ArrowLeftIcon data-icon="inline-start" />
+      {label}
+    </Link>
   );
 }
 
@@ -424,16 +420,12 @@ export function DesignPreview({
       <main className="container grid gap-8 pt-6 pb-8">
         {target ? (
           <div>
-            <BackLink
-              // The counter view opens on a full-width strip, so there is
-              // nothing for the link to overhang — it keeps its own row there.
-              className={counter ? undefined : "lg:mb-0 lg:h-0"}
-              href={counter ? `/design?target=${target.id}` : "/design"}
-              label={counter ? "กลับไปดูทีมแก้" : "กลับไปดูทีมเป้าหมาย"}
-            />
             <div className="grid gap-8">
               {counter ? (
                 <>
+                  {/* The counter view opens on a full-width strip, so the link
+                      takes a row of its own here. */}
+                  <BackLink href={`/design?target=${target.id}`} label="กลับ" />
                   <TargetReferenceStrip team={target} />
                   <CounterStrategy target={target} team={counter} />
                   {counters.length > 1 ? (
@@ -445,7 +437,14 @@ export function DesignPreview({
                 </>
               ) : (
                 <>
-                  <TargetSummary key={target.id} team={target} />
+                  {/* On the target view the link is a cell of the hero
+                      grid, so the top of the page still belongs to the lineup
+                      without anything overhanging to get it there. */}
+                  <TargetSummary
+                    key={target.id}
+                    backLink={<BackLink href="/design" label="กลับ" />}
+                    team={target}
+                  />
                   <section
                     aria-labelledby="saved-counters-heading"
                     className="grid gap-4"
