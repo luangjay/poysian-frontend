@@ -58,6 +58,16 @@ const formationOptions: TargetFormation[] = ["3-2", "2-3", "4-1", "1-4"];
  * its choice with a corner check as well. FieldLabel names its own group, and
  * the checked state lives on the radio it wraps.
  */
+/**
+ * Dismissal hangs off a pointer release, never off the value. Arrow keys move
+ * a radio group's selection, and Base UI's focus handler reaches that by
+ * calling `inputRef.click()` — so closing on either the change or the click
+ * would fire on the first arrow press and strand the options past it. A
+ * synthesised click dispatches no pointer events, and a touch that turns into
+ * a scroll ends in `pointercancel`, so only a real press gets through. The
+ * value applies the moment it changes either way; this only decides when the
+ * surface goes away.
+ */
 function SelectedMark() {
   return (
     <span
@@ -198,7 +208,6 @@ function TargetVariantDock({
                   onValueChange={(value) => {
                     if (typeof value === "string") {
                       onSpeedChange(value as TargetVariants["speeds"][number]);
-                      close();
                     }
                   }}
                 >
@@ -208,6 +217,7 @@ function TargetVariantDock({
                       <FieldLabel
                         key={speed}
                         className="relative h-full has-data-checked:border-primary"
+                        onPointerUp={available ? close : undefined}
                       >
                         <Field
                           data-disabled={!available || undefined}
@@ -286,7 +296,6 @@ function TargetVariantDock({
                         );
                         if (pets) {
                           onPetPackageChange(pets);
-                          close();
                         }
                       }
                     }}
@@ -294,6 +303,7 @@ function TargetVariantDock({
                     {variants.petPackages.map((pets) => (
                       <FieldLabel
                         key={pets.join("|")}
+                        onPointerUp={close}
                         className={cn(
                           optionCard,
                           "shrink-0 basis-[calc(50%-var(--popup-pad)*1.5)]"
@@ -343,14 +353,17 @@ function TargetVariantDock({
                   onValueChange={(value) => {
                     if (typeof value === "string") {
                       onFormationChange(value as TargetFormation);
-                      close();
                     }
                   }}
                 >
                   {formationOptions.map((formation) => {
                     const available = variants.formations.includes(formation);
                     return (
-                      <FieldLabel key={formation} className={optionCard}>
+                      <FieldLabel
+                        key={formation}
+                        className={optionCard}
+                        onPointerUp={available ? close : undefined}
+                      >
                         <Field
                           data-disabled={!available || undefined}
                           className="h-full items-center justify-between gap-0 text-center"

@@ -443,7 +443,7 @@ function VariantFace({
   return (
     <span
       className={cn(
-        "flex h-full w-full min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg bg-card px-2 py-2.5",
+        "flex h-full w-full min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg bg-card px-2 py-2.5 ring-1 ring-foreground/10",
         "transition-shadow motion-safe:duration-150 motion-reduce:transition-none",
         "group-hover:shadow-md group-focus-visible:ring-3 group-focus-visible:ring-ring/50"
       )}
