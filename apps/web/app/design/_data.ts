@@ -1,8 +1,14 @@
-export type Hero = { name: string; role: string; row: "front" | "back" };
+export type Hero = {
+  name: string;
+  role: string;
+  rarity: "gray" | "blue" | "green" | "purple" | "gold";
+  row: "front" | "back";
+  image?: string;
+};
 export const targetTeamTypes = [
-  { value: "defensive", label: "ป้องกัน" },
-  { value: "offensive", label: "โจมตี" },
-  { value: "magic", label: "เวทมนตร์" },
+  { value: "defensive", label: "ถึก" },
+  { value: "offensive", label: "กายภาพ" },
+  { value: "magic", label: "เวท" },
   { value: "other", label: "อื่น ๆ" },
 ] as const;
 
@@ -57,10 +63,27 @@ export type Team = {
   counters: number;
 };
 
+const heroImageByName: Record<string, string> = {
+  คริส: "kris",
+  ซอรัน: "sunran",
+  พาลานอส: "pallanus",
+  ยอนฮี: "yeonhee",
+  ยุนกอน: "yoongun-awakened",
+  สกัลด์: "skuld",
+  สไปค์: "spike",
+  ฮายอน: "hayeon",
+  เคลลิดิส: "gelidus",
+  โดยอง: "dongyoung",
+  โอม๊ก: "omok",
+  ไอลีน: "eileene",
+};
+
 const hero = (name: string, role: string, row: Hero["row"]): Hero => ({
   name,
   role,
+  rarity: "gold",
   row,
+  image: heroImageByName[name],
 });
 
 const counterVariants = (
@@ -77,219 +100,364 @@ const counterSkillOrder = (...skills: SkillOrderSet): SkillOrderSet => skills;
 
 export const targets: Team[] = [
   {
-    id: "moonlight",
-    title: "Yeonhee · Rosie · Rudy",
-    type: "เวทมนตร์",
+    id: "slow-yun-gon-formula",
+    title: "เวทช้ายุนกอนตามสูตร",
+    type: "เวท",
     targetType: "magic",
-    tags: ["ยื้อ HP", "คุมสถานะ"],
+    tags: ["วัดเลือด", "คุมสถานะ"],
     heroes: [
-      hero("Yeonhee", "เวทมนตร์", "back"),
-      hero("Rosie", "สนับสนุน", "back"),
-      hero("Rudy", "ป้องกัน", "front"),
+      hero("ยอนฮี", "เวท", "back"),
+      hero("ยุนกอน", "เวท", "back"),
+      hero("ฮายอน", "ป้องกัน", "front"),
     ],
-    pet: "Irin",
+    pet: "Pooki",
     variants: {
       speeds: ["ปกติ", "เร็ว", "ช้า"],
       formations: ["1-4", "2-3", "3-2"],
       petPackages: [
-        ["Irin", "Pooki"],
+        ["Pooki", "Irin"],
         ["Pooki", "Croa", "Irin", "Windy", "Lulu"],
         ["Croa"],
       ],
     },
-    condition: "ระวังการควบคุมจากแถวหลัง",
-    counters: 2,
+    condition: "ยืนช้า คุมจังหวะ และยื้อให้ยุนกอนออกสกิลตามสูตร",
+    counters: 4,
   },
   {
-    id: "silent-blade",
-    title: "Kagura · Evan · Karin",
-    type: "ป้องกัน",
-    targetType: "defensive",
-    tags: ["ยื้อ HP", "สวนกลับ"],
+    id: "omik-magic",
+    title: "เวทโอม๊ก",
+    type: "เวท",
+    targetType: "magic",
+    tags: ["คุมสถานะ", "วัดเลือด"],
     heroes: [
-      hero("Kagura", "โจมตี", "back"),
-      hero("Evan", "ป้องกัน", "front"),
-      hero("Karin", "สนับสนุน", "front"),
-    ],
-    pet: "Croa",
-    variants: {
-      speeds: ["ปกติ", "เร็ว", "ช้า"],
-      formations: ["2-3", "1-4", "4-1"],
-      petPackages: [["Croa", "Irin"], ["Irin"], ["Pooki", "Croa"]],
-    },
-    condition: "มีฮีลและตัวรับความเสียหาย",
-    counters: 3,
-  },
-  {
-    id: "nightfall",
-    title: "Teo · Nia · Vanessa",
-    type: "โจมตี",
-    targetType: "offensive",
-    tags: ["เน้นความเร็ว", "ปิดงาน"],
-    heroes: [
-      hero("Teo", "โจมตี", "back"),
-      hero("Nia", "เวทมนตร์", "front"),
-      hero("Vanessa", "สนับสนุน", "front"),
+      hero("ยุนกอน", "เวท", "back"),
+      hero("โอม๊ก", "เวท", "front"),
+      hero("ฮายอน", "ป้องกัน", "front"),
     ],
     pet: "Pooki",
     variants: {
-      speeds: ["เร็ว", "ช้า"],
+      speeds: ["ช้า", "ปกติ"],
       formations: ["1-4", "2-3"],
-      petPackages: [["Pooki", "Irin"], ["Croa"]],
+      petPackages: [["Pooki", "Irin"], ["Irin"]],
     },
-    condition: "ตรวจสอบลำดับการออกสกิล",
+    condition: "โอม๊กคุมสนาม ขณะที่ฮายอนยืนรับความเสียหาย",
     counters: 1,
   },
   {
-    id: "iron-wall",
-    title: "Kyle · Karma · Chancellor",
-    type: "ป้องกัน",
-    targetType: "defensive",
-    tags: ["ยื้อ HP", "สวนกลับ"],
-    heroes: [
-      hero("Kyle", "โจมตี", "back"),
-      hero("Karma", "สมดุล", "front"),
-      hero("Chancellor", "ป้องกัน", "front"),
-    ],
-    pet: "Windy",
-    variants: {
-      speeds: ["ปกติ", "ช้า"],
-      formations: ["2-3", "1-4"],
-      petPackages: [["Windy", "Irin"], ["Irin"]],
-    },
-    condition: "ทีมรับแน่น พร้อมสวนกลับ",
-    counters: 1,
-  },
-  {
-    id: "all-in",
-    title: "Shane · Eileene · Rachel",
+    id: "yun-gon-dyong",
+    title: "ยุนกอนโดยองปิดเกม",
     type: "โจมตี",
     targetType: "offensive",
-    tags: ["เน้นความเร็ว", "ปิดงาน"],
+    tags: ["ปิดงาน", "เน้นความเร็ว"],
     heroes: [
-      hero("Shane", "โจมตี", "back"),
-      hero("Eileene", "สมดุล", "back"),
-      hero("Rachel", "โจมตี", "back"),
+      hero("ยุนกอน", "เวท", "back"),
+      hero("โดยอง", "โจมตี", "back"),
+      hero("ฮายอน", "ป้องกัน", "front"),
     ],
-    pet: "Croa",
+    pet: "Pooki",
     variants: {
-      speeds: ["เร็ว", "ช้า"],
-      formations: ["3-2", "2-3"],
-      petPackages: [["Croa", "Pooki", "Irin"], ["Pooki"]],
+      speeds: ["เร็ว", "ปกติ"],
+      formations: ["1-4", "2-3"],
+      petPackages: [
+        ["Pooki", "Irin"],
+        ["Croa", "Pooki"],
+      ],
     },
-    condition: "สามตัวแถวหลัง เน้นความเสียหาย",
-    counters: 0,
+    condition: "เร่งโดยองให้ปิดเกมหลังยุนกอนเปิดจังหวะ",
+    counters: 2,
   },
   {
-    id: "daybreak",
-    title: "Rudy · Karin · Rachel",
-    type: "อื่น ๆ",
-    targetType: "other",
-    tags: ["ยื้อ HP", "คุมสถานะ"],
+    id: "hayon-magic",
+    title: "เวทฮายอน",
+    type: "เวท",
+    targetType: "magic",
+    tags: ["คุมสถานะ", "เน้นความเร็ว"],
     heroes: [
-      hero("Rudy", "ป้องกัน", "front"),
-      hero("Karin", "สนับสนุน", "back"),
-      hero("Rachel", "โจมตี", "back"),
+      hero("ยอนฮี", "เวท", "back"),
+      hero("ยุนกอน", "เวท", "back"),
+      hero("โดยอง", "โจมตี", "back"),
     ],
     pet: "Irin",
     variants: {
-      speeds: ["ปกติ", "เร็ว"],
-      formations: ["2-3", "1-4"],
-      petPackages: [["Irin", "Windy"], ["Windy"]],
+      speeds: ["เร็ว", "ปกติ", "ช้า"],
+      formations: ["3-2", "2-3", "1-4"],
+      petPackages: [
+        ["Irin", "Pooki"],
+        ["Pooki", "Croa", "Irin"],
+      ],
     },
-    condition: "ยื้อจังหวะด้วยฮีลและเกราะ",
-    counters: 0,
+    condition: "เวทสามตัวแถวหลัง กดดันต่อเนื่องตั้งแต่เทิร์นแรก",
+    counters: 11,
+  },
+  {
+    id: "fast-skald",
+    title: "เวทไวสกัลด์",
+    type: "ป้องกัน",
+    targetType: "defensive",
+    tags: ["สวนกลับ", "วัดเลือด"],
+    heroes: [
+      hero("ยุนกอน", "เวท", "back"),
+      hero("สกัลด์", "ป้องกัน", "front"),
+      hero("โดยอง", "โจมตี", "front"),
+    ],
+    pet: "Irin",
+    variants: {
+      speeds: ["เร็ว", "ปกติ"],
+      formations: ["2-3", "1-4"],
+      petPackages: [["Irin", "Pooki", "Windy"], ["Pooki"]],
+    },
+    condition: "สกัลด์ยืนรับก่อน แล้วโดยองสวนกลับด้วยความเร็วสูง",
+    counters: 6,
+  },
+  {
+    id: "omik-dyong-control",
+    title: "โอม๊กโดยองคุมเกม",
+    type: "อื่น ๆ",
+    targetType: "other",
+    tags: ["คุมสถานะ", "ปิดงาน"],
+    heroes: [
+      hero("ยุนกอน", "เวท", "back"),
+      hero("โดยอง", "โจมตี", "front"),
+      hero("โอม๊ก", "เวท", "front"),
+    ],
+    pet: "Croa",
+    variants: {
+      speeds: ["ปกติ", "เร็ว"],
+      formations: ["2-3", "1-4", "4-1"],
+      petPackages: [
+        ["Croa", "Irin", "Pooki"],
+        ["Irin", "Croa"],
+      ],
+    },
+    condition: "โอม๊กล็อกจังหวะให้โดยองปิดเป้าหมายที่อ่อนแอ",
+    counters: 3,
   },
 ];
 
 // Design fixtures: illustrative setups, not verified game recommendations.
+const counterFixtures: Team[] = [
+  {
+    id: "omik-opener",
+    title: "เวทโอม๊กเปิดก่อน",
+    type: "ทีมแก้",
+    heroes: [
+      hero("ยุนกอน", "เวท", "back"),
+      hero("โอม๊ก", "เวท", "front"),
+      hero("โดยอง", "โจมตี", "front"),
+    ],
+    pet: "Irin",
+    speedOrder: ["โอม๊ก", "ยุนกอน", "โดยอง"],
+    skillOrder: counterSkillOrder(
+      { hero: "โอม๊ก", slot: "B", order: 1 },
+      { hero: "ยุนกอน", slot: "T", order: 2 },
+      { hero: "ยุนกอน", slot: "B", order: 3 }
+    ),
+    variants: counterVariants("เร็ว", "1-4", ["Irin", "Pooki"]),
+    condition: "ให้โอม๊กเปิดก่อน แล้วโดยองตามเก็บเป้าหมายที่ถูกคุม",
+    counters: 0,
+  },
+  {
+    id: "uju-chris-slow",
+    title: "เวทช้าฮายอนคริส",
+    type: "ทีมแก้",
+    heroes: [
+      hero("ซอรัน", "เวท", "back"),
+      hero("ฮายอน", "ป้องกัน", "front"),
+      hero("คริส", "โจมตี", "front"),
+    ],
+    pet: "Lulu",
+    speedOrder: ["ฮายอน", "ซอรัน", "คริส"],
+    skillOrder: counterSkillOrder(
+      { hero: "ฮายอน", slot: "B", order: 1 },
+      { hero: "ซอรัน", slot: "T", order: 2 },
+      { hero: "คริส", slot: "A", order: 3 }
+    ),
+    variants: counterVariants("ช้า", "1-4", ["Lulu"]),
+    condition: "ฮายอนต้องผ่านชุดแรกก่อน แล้วคริสค่อยสวนกลับ",
+    counters: 0,
+  },
+  {
+    id: "uju-palanos",
+    title: "เวทฮายอนพาลานอส",
+    type: "ทีมแก้",
+    heroes: [
+      hero("ฮายอน", "ป้องกัน", "back"),
+      hero("พาลานอส", "โจมตี", "back"),
+      hero("ไอลีน", "สนับสนุน", "front"),
+    ],
+    pet: "Pooki",
+    speedOrder: ["พาลานอส", "ไอลีน", "ฮายอน"],
+    skillOrder: counterSkillOrder(
+      { hero: "พาลานอส", slot: "B", order: 1 },
+      { hero: "ไอลีน", slot: "T", order: 2 },
+      { hero: "ฮายอน", slot: "A", order: 3 }
+    ),
+    variants: counterVariants("ปกติ", "4-1", ["Pooki", "Irin"]),
+    condition: "ฮายอนยืนค้ำให้พาลานอสมีจังหวะกดดันต่อเนื่อง",
+    counters: 0,
+  },
+  {
+    id: "spike-kledis",
+    title: "เวทสไปค์เคลลิดิส",
+    type: "ทีมแก้",
+    heroes: [
+      hero("สไปค์", "เวท", "back"),
+      hero("เคลลิดิส", "โจมตี", "front"),
+      hero("ฮายอน", "ป้องกัน", "front"),
+    ],
+    pet: "Croa",
+    speedOrder: ["สไปค์", "เคลลิดิส", "ฮายอน"],
+    skillOrder: counterSkillOrder(
+      { hero: "สไปค์", slot: "T", order: 1 },
+      { hero: "เคลลิดิส", slot: "B", order: 2 },
+      { hero: "ฮายอน", slot: "A", order: 3 }
+    ),
+    variants: counterVariants("ปกติ", "2-3", ["Croa"]),
+    condition: "ให้สไปค์คุมก่อน เคลลิดิสจึงตามปิดจังหวะ",
+    counters: 0,
+  },
+  {
+    id: "slow-yun-gon-control",
+    title: "เวทช้ายุนกอนคุมเกม",
+    type: "ทีมแก้",
+    heroes: [
+      hero("ยุนกอน", "เวท", "back"),
+      hero("ฮายอน", "ป้องกัน", "front"),
+      hero("โอม๊ก", "เวท", "front"),
+    ],
+    pet: "Irin",
+    speedOrder: ["ฮายอน", "ยุนกอน", "โอม๊ก"],
+    skillOrder: counterSkillOrder(
+      { hero: "ฮายอน", slot: "B", order: 1 },
+      { hero: "ยุนกอน", slot: "T", order: 2 },
+      { hero: "โอม๊ก", slot: "A", order: 3 }
+    ),
+    variants: counterVariants("ช้า", "2-3", ["Irin", "Windy"]),
+    condition: "ชนะด้วยการคุมยาว ไม่จำเป็นต้องรีบเปิดเทิร์นแรก",
+    counters: 0,
+  },
+  {
+    id: "fast-skald-finish",
+    title: "เวทไวสกัลด์ปิดเกม",
+    type: "ทีมแก้",
+    heroes: [
+      hero("สกัลด์", "ป้องกัน", "back"),
+      hero("โดยอง", "โจมตี", "front"),
+      hero("โอม๊ก", "เวท", "front"),
+    ],
+    pet: "Pooki",
+    speedOrder: ["โอม๊ก", "โดยอง", "สกัลด์"],
+    skillOrder: counterSkillOrder(
+      { hero: "โอม๊ก", slot: "T", order: 1 },
+      { hero: "โดยอง", slot: "B", order: 2 },
+      { hero: "โดยอง", slot: "A", order: 3 }
+    ),
+    variants: counterVariants("เร็ว", "2-3", ["Pooki", "Croa", "Irin"]),
+    condition: "เร่งโอม๊กและโดยองให้ปิดก่อนทีมเป้าหมายตั้งตัว",
+    counters: 0,
+  },
+  {
+    id: "omik-counterplay",
+    title: "เวทโอม๊กกันสวน",
+    type: "ทีมแก้",
+    heroes: [
+      hero("โอม๊ก", "เวท", "back"),
+      hero("ฮายอน", "ป้องกัน", "front"),
+      hero("ยุนกอน", "เวท", "front"),
+    ],
+    pet: "Croa",
+    speedOrder: ["ยุนกอน", "โอม๊ก", "ฮายอน"],
+    skillOrder: counterSkillOrder(
+      { hero: "ยุนกอน", slot: "B", order: 1 },
+      { hero: "โอม๊ก", slot: "T", order: 2 },
+      { hero: "ฮายอน", slot: "A", order: 3 }
+    ),
+    variants: counterVariants("ปกติ", "1-4", ["Croa", "Pooki"]),
+    condition: "เก็บสกิลหลักไว้หลังทีมรับผ่านจังหวะแรก",
+    counters: 0,
+  },
+  {
+    id: "hayon-backline",
+    title: "เวทยอนฮีทะลุหลัง",
+    type: "ทีมแก้",
+    heroes: [
+      hero("ยอนฮี", "เวท", "back"),
+      hero("โดยอง", "โจมตี", "back"),
+      hero("ฮายอน", "ป้องกัน", "front"),
+    ],
+    pet: "Lulu",
+    speedOrder: ["ยอนฮี", "โดยอง", "ฮายอน"],
+    skillOrder: counterSkillOrder(
+      { hero: "ยอนฮี", slot: "T", order: 1 },
+      { hero: "โดยอง", slot: "B", order: 2 },
+      { hero: "ฮายอน", slot: "A", order: 3 }
+    ),
+    variants: counterVariants("เร็ว", "3-2", ["Lulu", "Irin"]),
+    condition: "เจาะตัวคุมแถวหลัง ก่อนปล่อยโดยองปิดงาน",
+    counters: 0,
+  },
+  {
+    id: "uju-frontline",
+    title: "เวทฮายอนรับหน้า",
+    type: "ทีมแก้",
+    heroes: [
+      hero("ยุนกอน", "เวท", "back"),
+      hero("ฮายอน", "ป้องกัน", "front"),
+      hero("สกัลด์", "ป้องกัน", "front"),
+    ],
+    pet: "Irin",
+    speedOrder: ["ฮายอน", "สกัลด์", "ยุนกอน"],
+    skillOrder: counterSkillOrder(
+      { hero: "ฮายอน", slot: "B", order: 1 },
+      { hero: "สกัลด์", slot: "T", order: 2 },
+      { hero: "ยุนกอน", slot: "A", order: 3 }
+    ),
+    variants: counterVariants("ช้า", "1-4", ["Irin", "Pooki", "Windy"]),
+    condition: "ฮายอนกับสกัลด์รับดาเมจก่อน แล้วค่อยยุนกอนพลิกจังหวะ",
+    counters: 0,
+  },
+  {
+    id: "slow-long-game",
+    title: "เวทช้ายืนยาว",
+    type: "ทีมแก้",
+    heroes: [
+      hero("ยุนกอน", "เวท", "back"),
+      hero("โอม๊ก", "เวท", "front"),
+      hero("สกัลด์", "ป้องกัน", "front"),
+    ],
+    pet: "Windy",
+    speedOrder: ["สกัลด์", "ยุนกอน", "โอม๊ก"],
+    skillOrder: counterSkillOrder(
+      { hero: "สกัลด์", slot: "B", order: 1 },
+      { hero: "ยุนกอน", slot: "T", order: 2 },
+      { hero: "โอม๊ก", slot: "A", order: 3 }
+    ),
+    variants: counterVariants("ช้า", "2-3", ["Windy", "Irin"]),
+    condition: "เน้นยืนรอดและบีบให้คู่ต่อสู้หมดจังหวะก่อน",
+    counters: 0,
+  },
+  {
+    id: "three-backline",
+    title: "เวทสามแถวหลัง",
+    type: "ทีมแก้",
+    heroes: [
+      hero("ยอนฮี", "เวท", "back"),
+      hero("ยุนกอน", "เวท", "back"),
+      hero("โอม๊ก", "เวท", "back"),
+    ],
+    pet: "Pooki",
+    speedOrder: ["ยุนกอน", "ยอนฮี", "โอม๊ก"],
+    skillOrder: counterSkillOrder(
+      { hero: "ยุนกอน", slot: "B", order: 1 },
+      { hero: "ยอนฮี", slot: "T", order: 2 },
+      { hero: "โอม๊ก", slot: "A", order: 3 }
+    ),
+    variants: counterVariants("เร็ว", "3-2", ["Pooki", "Croa", "Irin"]),
+    condition: "ใช้เมื่อมั่นใจว่าแถวหลังปลอดภัยและเปิดเกมได้ก่อน",
+    counters: 0,
+  },
+];
+
 export function getCounters(target: Team): Team[] {
-  return [
-    {
-      id: "opening",
-      title: "เปิดก่อน แล้วปิดเกม",
-      type: "ต้องเปิดก่อน",
-      heroes: [
-        hero("Teo", "โจมตี", "back"),
-        hero("Karma", "สมดุล", "front"),
-        hero("Karin", "สนับสนุน", "front"),
-      ],
-      pet: "Croa",
-      speedOrder: ["Teo", "Karma", "Karin"],
-      skillOrder: counterSkillOrder(
-        { hero: "Teo", slot: "T", order: 1 },
-        { hero: "Teo", slot: "B", order: 2 },
-        { hero: "Teo", slot: "A", order: 3 }
-      ),
-      variants: counterVariants("เร็ว", "2-3", [
-        "Croa",
-        "Irin",
-        "Windy",
-        "Pooki",
-        "Lulu",
-      ]),
-      condition: "จัดความเร็วให้ตัวเปิดได้ออกสกิลก่อน และเตรียมต้านสถานะ",
-      counters: 0,
-    },
-    {
-      id: "survive",
-      title: "รับจังหวะแรก แล้วสวนกลับ",
-      type: "เล่นจังหวะสวน",
-      heroes: [
-        hero("Rudy", "ป้องกัน", "front"),
-        hero("Rachel", "โจมตี", "back"),
-        hero("Karin", "สนับสนุน", "back"),
-      ],
-      pet: "Irin",
-      speedOrder: ["Rudy", "Rachel", "Karin"],
-      skillOrder: counterSkillOrder(
-        { hero: "Rudy", slot: "B", order: 1 },
-        { hero: "Rachel", slot: "T", order: 2 },
-        { hero: "Karin", slot: "A", order: 3 }
-      ),
-      variants: counterVariants("ช้า", "1-4", ["Irin", "Windy"]),
-      condition: "ตัวรับต้องยืนผ่านชุดสกิลแรกได้ก่อนเริ่มสวนกลับ",
-      counters: 0,
-    },
-    {
-      id: "opening2",
-      title: "เปิดก่อน แล้วปิดเกม 2",
-      type: "ต้องเปิดก่อน",
-      heroes: [
-        hero("Teo", "โจมตี", "back"),
-        hero("Karma", "สมดุล", "front"),
-        hero("Karin", "สนับสนุน", "front"),
-      ],
-      pet: "Croa",
-      speedOrder: ["Teo", "Karma", "Karin"],
-      skillOrder: counterSkillOrder(
-        { hero: "Teo", slot: "T", order: 1 },
-        { hero: "Karma", slot: "B", order: 2 },
-        { hero: "Karin", slot: "A", order: 3 }
-      ),
-      variants: counterVariants("เร็ว", "2-3", ["Croa", "Pooki"]),
-      condition: "จัดความเร็วให้ตัวเปิดได้ออกสกิลก่อน และเตรียมต้านสถานะ",
-      counters: 0,
-    },
-    {
-      id: "survive2",
-      title: "รับจังหวะแรก แล้วสวนกลับ 2",
-      type: "เล่นจังหวะสวน",
-      heroes: [
-        hero("Rudy", "ป้องกัน", "front"),
-        hero("Rachel", "โจมตี", "back"),
-        hero("Karin", "สนับสนุน", "back"),
-      ],
-      pet: "Irin",
-      speedOrder: ["Rudy", "Rachel", "Karin"],
-      skillOrder: counterSkillOrder(
-        { hero: "Rudy", slot: "B", order: 1 },
-        { hero: "Rachel", slot: "T", order: 2 },
-        { hero: "Karin", slot: "A", order: 3 }
-      ),
-      variants: counterVariants("ช้า", "1-4", ["Irin", "Windy", "Pooki"]),
-      condition: "ตัวรับต้องยืนผ่านชุดสกิลแรกได้ก่อนเริ่มสวนกลับ",
-      counters: 0,
-    },
-  ].slice(0, target.counters);
+  return counterFixtures.slice(0, target.counters);
 }
