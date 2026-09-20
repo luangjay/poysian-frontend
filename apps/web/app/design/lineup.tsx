@@ -1,8 +1,9 @@
 import { type ReactNode } from "react";
 import Image from "next/image";
+import { SneakerMoveIcon } from "@phosphor-icons/react";
+import { Separator } from "@workspace/ui/components/separator";
 import { cn } from "@workspace/ui/lib/utils";
 import {
-  targetFormations,
   type Hero,
   type SkillOrder,
   type TargetFormation,
@@ -34,17 +35,23 @@ export function HeroPortrait({
   hero,
   className,
   loading = "lazy",
+  shared = false,
+  size = "md",
 }: {
   hero: Hero;
   className?: string;
   loading?: "eager" | "lazy";
+  shared?: boolean;
+  size?: "sm" | "md";
 }) {
   const roleIconSrc = heroRoleIconByRole[hero.role] ?? universalRoleIconSrc;
+  const imageSizes = size === "sm" ? "2.75rem" : "4.5rem";
 
   return (
     <div
       className={cn(
-        "grid w-18 min-w-0 shrink-0 justify-items-center gap-1 text-center",
+        "grid min-w-0 shrink-0 justify-items-center gap-0.5 text-center",
+        size === "sm" ? "w-11" : "w-18",
         className
       )}
     >
@@ -53,18 +60,18 @@ export function HeroPortrait({
           <Image
             fill
             alt=""
-            className="object-fill"
+            className="object-fill select-none"
             loading={loading}
-            sizes="4.5rem"
+            sizes={imageSizes}
             src={heroRarityBackgroundSrcByRarity[hero.rarity]}
           />
           {hero.image ? (
             <Image
               fill
               alt=""
-              className="z-10 object-cover"
+              className="z-10 object-cover select-none"
               loading={loading}
-              sizes="4.5rem"
+              sizes={imageSizes}
               src={`http://127.0.0.1:9000/heroes/${hero.image}.png`}
             />
           ) : (
@@ -78,21 +85,29 @@ export function HeroPortrait({
         </div>
         <Image
           alt=""
-          className="pointer-events-none absolute top-0 right-0 z-20 h-auto w-full"
+          className="pointer-events-none absolute top-0 right-0 z-20 h-auto w-full select-none"
           height={128}
           loading={loading}
-          sizes="72px"
+          sizes={size === "sm" ? "44px" : "72px"}
           src={heroRarityFrameSrc}
           width={145}
         />
         <Image
           alt=""
-          className="absolute bottom-2.5 left-0.5 z-30 size-4.5 drop-shadow-sm"
+          className={cn(
+            "absolute left-0.5 z-30 drop-shadow-sm select-none",
+            size === "sm" ? "bottom-1 size-3" : "bottom-2.5 size-4.5"
+          )}
           height={40}
           loading={loading}
           src={roleIconSrc}
           width={40}
         />
+        {shared ? (
+          <span className="absolute top-1 left-1 z-30 grid size-2.5 place-items-center rounded-full bg-primary ring-2 ring-muted">
+            <span className="sr-only">ตัวร่วมกับทีมเป้าหมาย</span>
+          </span>
+        ) : null}
       </div>
       <span
         className="w-full min-w-0 truncate text-xs font-medium"
@@ -104,9 +119,20 @@ export function HeroPortrait({
   );
 }
 
-function LineupSurface({ children }: { children: ReactNode }) {
+function LineupSurface({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="grid min-h-64 w-full justify-self-center rounded-xl border bg-accent px-(--card-spacing) shadow-xs [--card-spacing:--spacing(3)]">
+    <div
+      className={cn(
+        "grid w-full max-w-md overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/10 [--card-spacing:--spacing(3)]",
+        className
+      )}
+    >
       {children}
     </div>
   );
@@ -116,6 +142,7 @@ function LineupRows({
   team,
   HeroTile = HeroPortrait,
   loading = "lazy",
+  sharedHeroNames,
 }: {
   team: Team;
   HeroTile?: (props: {
@@ -123,12 +150,14 @@ function LineupRows({
     className?: string;
     skills?: SkillOrder[];
     loading?: "eager" | "lazy";
+    shared?: boolean;
   }) => ReactNode;
   loading?: "eager" | "lazy";
+  sharedHeroNames?: string[];
 }) {
   return (
     <div
-      className="mx-auto grid min-h-0 w-full max-w-sm grid-rows-2 gap-5 p-3 [--lineup-hero-label-offset:calc((1rem+0.25rem)/2)]"
+      className="mx-auto grid min-h-0 w-full max-w-sm grid-rows-2 gap-1 p-2.5 [--lineup-hero-label-offset:calc((1rem+0.125rem)/2)]"
       aria-label="การจัดทีม"
     >
       {(["front", "back"] as const).map((row) => {
@@ -174,6 +203,7 @@ function LineupRows({
                   hero={hero}
                   className={cn(stacked && index > 0 && "-ml-4")}
                   loading={loading}
+                  shared={sharedHeroNames?.includes(hero.name)}
                   skills={team.skillOrder?.filter(
                     (skill) => skill.hero === hero.name
                   )}
@@ -187,11 +217,6 @@ function LineupRows({
   );
 }
 
-export const Lineup = {
-  Surface: LineupSurface,
-  Rows: LineupRows,
-};
-
 const formationRows = {
   "1-4": [1, 4],
   "2-3": [2, 3],
@@ -199,41 +224,75 @@ const formationRows = {
   "4-1": [4, 1],
 } as const satisfies Record<TargetFormation, readonly [number, number]>;
 
+export function formationLabel(formation: TargetFormation) {
+  const [backCount, frontCount] = formationRows[formation];
+
+  return `หน้า ${frontCount} · หลัง ${backCount}`;
+}
+
 export function FormationPreview({
   formation,
+  compact = false,
 }: {
   formation: TargetFormation;
+  compact?: boolean;
 }) {
   const [backCount, frontCount] = formationRows[formation];
+  const dots = (
+    <>
+      <div className="flex justify-center gap-1">
+        {Array.from({ length: backCount }, (_, index) => (
+          <span
+            key={index}
+            className={cn(
+              "rounded-full bg-red/60",
+              compact ? "size-1.5" : "size-2"
+            )}
+          />
+        ))}
+      </div>
+      <div className="flex justify-center gap-1">
+        {Array.from({ length: frontCount }, (_, index) => (
+          <span
+            key={index}
+            className={cn(
+              "rounded-full bg-blue/60",
+              compact ? "size-1.5" : "size-2"
+            )}
+          />
+        ))}
+      </div>
+    </>
+  );
+
+  if (compact) {
+    return (
+      <div
+        aria-hidden="true"
+        className="flex shrink-0 flex-col justify-center gap-1"
+      >
+        {dots}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-1.5 text-center">
       <div
         aria-hidden="true"
-        className="flex size-14 flex-col justify-center gap-1.5 rounded-full bg-linear-to-br from-primary/20 via-muted to-accent px-2 shadow-xs"
+        className="flex size-14 flex-col justify-center gap-1.5 rounded-full bg-linear-to-br from-primary/20 to-muted px-2 shadow-xs"
       >
-        <div className="flex justify-center gap-1">
-          {Array.from({ length: backCount }, (_, index) => (
-            <span key={index} className="size-2 rounded-full bg-red/60" />
-          ))}
-        </div>
-        <div className="flex justify-center gap-1">
-          {Array.from({ length: frontCount }, (_, index) => (
-            <span key={index} className="size-2 rounded-full bg-blue/60" />
-          ))}
-        </div>
+        {dots}
       </div>
-      <span className="text-[11px] whitespace-nowrap text-muted-foreground">
-        หน้า {frontCount} · หลัง {backCount}
+      <span className="text-xs whitespace-nowrap text-muted-foreground">
+        {formationLabel(formation)}
       </span>
     </div>
   );
 }
 
 export function withFormation(team: Team, formation: TargetFormation): Team {
-  const backCount =
-    targetFormations.find((option) => option.value === formation)
-      ?.backHeroCount ?? 0;
+  const [backCount] = formationRows[formation];
 
   return {
     ...team,
@@ -252,7 +311,7 @@ const legendaryPetImageByName = {
   Windy: "ruu",
 } as const;
 
-function PetPortrait({
+export function PetPortrait({
   pet,
   size = "secondary",
 }: {
@@ -282,7 +341,7 @@ function PetPortrait({
         <Image
           fill
           alt=""
-          className="object-cover"
+          className="object-cover select-none"
           sizes={size === "primary" ? "56px" : "28px"}
           src={heroRarityBackgroundSrcByRarity.gold}
         />
@@ -290,7 +349,7 @@ function PetPortrait({
           <Image
             fill
             alt=""
-            className="z-10 origin-bottom scale-125 object-cover"
+            className="z-10 origin-bottom scale-125 object-cover select-none"
             sizes={size === "primary" ? "56px" : "28px"}
             src={`http://127.0.0.1:9000/pets/${image}.png`}
           />
@@ -298,7 +357,7 @@ function PetPortrait({
       </div>
       <Image
         alt=""
-        className="pointer-events-none absolute top-0 right-0 z-20 h-auto w-full"
+        className="pointer-events-none absolute top-0 right-0 z-20 h-auto w-full select-none"
         height={128}
         sizes={size === "primary" ? "56px" : "28px"}
         src={heroRarityFrameSrc}
@@ -316,7 +375,7 @@ export function PetChoice({ pets }: { pets: string[] }) {
   }
 
   return (
-    <div className="grid h-32 w-full max-w-28 shrink-0 place-items-center text-center">
+    <div className="grid w-full max-w-28 shrink-0 place-items-center text-center">
       <div className="flex flex-col items-center gap-1.5">
         <PetPortrait pet={primaryPet} size="primary" />
         {companionPets.length ? (
@@ -345,3 +404,96 @@ export function PetChoice({ pets }: { pets: string[] }) {
     </div>
   );
 }
+
+function PetStrip({ pets }: { pets: string[] }) {
+  return (
+    <div aria-hidden="true" className="flex shrink-0">
+      {pets.slice(0, 3).map((pet, index) => (
+        <div key={pet} className={cn(index > 0 && "-ml-1.5")}>
+          <PetPortrait pet={pet} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** The strip of variant cells that closes a lineup surface. */
+function LineupVariants({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <Separator />
+      <div className="grid grid-cols-3 divide-x">{children}</div>
+    </>
+  );
+}
+
+/**
+ * Shared shell for a variant cell: a visual that names the facet, and the
+ * current value. The caption stays for screen readers only — the shoe, the pet
+ * portraits and the formation dots already say which cell is which.
+ */
+function VariantFace({
+  caption,
+  value,
+  visual,
+}: {
+  caption: string;
+  value: string;
+  visual: ReactNode;
+}) {
+  return (
+    <span className="flex h-full w-full min-w-0 flex-col items-center justify-center gap-1 px-2 py-2">
+      {visual}
+      <span className="grid max-w-full min-w-0 text-center">
+        <span className="sr-only">{caption}</span>
+        <span className="truncate text-xs leading-tight font-medium">
+          {value}
+        </span>
+      </span>
+    </span>
+  );
+}
+
+function LineupSpeed({ value }: { value: string }) {
+  return (
+    <VariantFace
+      caption="ความเร็ว"
+      value={value}
+      visual={
+        <SneakerMoveIcon
+          aria-hidden="true"
+          className="size-5 shrink-0 text-primary"
+        />
+      }
+    />
+  );
+}
+
+function LineupPets({ pets }: { pets: string[] }) {
+  return (
+    <VariantFace
+      caption="สัตว์เลี้ยง"
+      value={pets.join(" · ")}
+      visual={<PetStrip pets={pets} />}
+    />
+  );
+}
+
+function LineupFormation({ formation }: { formation: TargetFormation }) {
+  return (
+    <VariantFace
+      caption="การจัดแถว"
+      value={formationLabel(formation)}
+      visual={<FormationPreview compact formation={formation} />}
+    />
+  );
+}
+
+export const Lineup = {
+  Surface: LineupSurface,
+  Rows: LineupRows,
+  Variants: LineupVariants,
+  Speed: LineupSpeed,
+  Pets: LineupPets,
+  Formation: LineupFormation,
+};

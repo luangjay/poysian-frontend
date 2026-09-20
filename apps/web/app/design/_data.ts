@@ -15,10 +15,10 @@ export const targetTeamTypes = [
 export type TargetTeamType = (typeof targetTeamTypes)[number]["value"];
 
 export const targetFormations = [
-  { value: "1-4", label: "1–4", backHeroCount: 2 },
-  { value: "3-2", label: "3–2", backHeroCount: 0 },
-  { value: "2-3", label: "2–3", backHeroCount: 1 },
-  { value: "4-1", label: "4–1", backHeroCount: 0 },
+  { value: "1-4", label: "1–4" },
+  { value: "3-2", label: "3–2" },
+  { value: "2-3", label: "2–3" },
+  { value: "4-1", label: "4–1" },
 ] as const;
 
 export type TargetFormation = (typeof targetFormations)[number]["value"];
@@ -231,6 +231,26 @@ export const targets: Team[] = [
     },
     condition: "โอม๊กล็อกจังหวะให้โดยองปิดเป้าหมายที่อ่อนแอ",
     counters: 3,
+  },
+  {
+    id: "kris-pallanus-rush",
+    title: "คริสพาลานอสบุกเร็ว",
+    type: "กายภาพ",
+    targetType: "offensive",
+    tags: ["เน้นความเร็ว", "ปิดงาน"],
+    heroes: [
+      hero("คริส", "โจมตี", "back"),
+      hero("พาลานอส", "โจมตี", "front"),
+      hero("สกัลด์", "ป้องกัน", "front"),
+    ],
+    pet: "Windy",
+    variants: {
+      speeds: ["เร็ว"],
+      formations: ["2-3", "1-4"],
+      petPackages: [["Windy", "Lulu"], ["Windy"]],
+    },
+    condition: "บุกเร็วตั้งแต่เทิร์นแรก ยังไม่มีใครในกิลด์บันทึกทีมแก้ไว้",
+    counters: 0,
   },
 ];
 
@@ -457,6 +477,16 @@ const counterFixtures: Team[] = [
     counters: 0,
   },
 ];
+
+export function teamVariants(team: Team): TargetVariants {
+  return (
+    team.variants ?? {
+      speeds: ["ปกติ"],
+      formations: ["2-3"],
+      petPackages: [[team.pet]],
+    }
+  );
+}
 
 export function getCounters(target: Team): Team[] {
   return counterFixtures.slice(0, target.counters);

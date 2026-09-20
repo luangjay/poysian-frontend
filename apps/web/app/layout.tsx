@@ -1,5 +1,6 @@
 import { Geist_Mono, Inter } from "next/font/google";
 import "@workspace/ui/globals.css";
+import { Toaster } from "@workspace/ui/components/toast";
 import { cn } from "@workspace/ui/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -17,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="th"
       suppressHydrationWarning
       className={cn(
         "antialiased",
@@ -27,7 +28,10 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,16 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { SneakerMoveIcon } from "@phosphor-icons/react";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +27,7 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@workspace/ui/components/radio-group";
+import { cn } from "@workspace/ui/lib/utils";
 import {
   type PetPackage,
   type TargetFormation,
@@ -42,7 +35,7 @@ import {
   type Team,
 } from "./_data";
 import { FormationPreview, Lineup, PetChoice, withFormation } from "./lineup";
-import { TeamTypeBadge } from "./team-card";
+import { TeamTypeBadge, teamTypeTextClass } from "./team-card";
 
 const speedOptions: Array<TargetVariants["speeds"][number]> = [
   "ปกติ",
@@ -56,7 +49,6 @@ type VariantSelectorProps = {
   children: ReactNode;
   content: (close: () => void) => ReactNode;
   contentClassName?: string;
-  side?: "top" | "bottom";
   align?: "start" | "end" | "center";
 };
 
@@ -65,56 +57,58 @@ function VariantSelector({
   children,
   content,
   contentClassName,
-  side = "bottom",
   align = "center",
 }: VariantSelectorProps) {
   const [hoverCardOpen, setHoverCardOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const triggerClassName =
-    "h-full w-full rounded-none px-2 py-2 text-left hover:bg-card/70";
 
   return (
-    <>
-      <div className="hidden h-full sm:block">
-        <HoverCard open={hoverCardOpen} onOpenChange={setHoverCardOpen}>
-          <HoverCardTrigger
-            aria-label={`เลือกรูปแบบ${title}`}
-            closeDelay={180}
-            delay={120}
-            render={<Button className={triggerClassName} variant="ghost" />}
-          >
-            {children}
-          </HoverCardTrigger>
-          <HoverCardContent
-            align={align}
-            className={`gap-3 p-3 ${contentClassName ?? ""}`}
-            side={side}
-          >
-            <p className="text-sm font-medium">{title}</p>
-            {content(() => setHoverCardOpen(false))}
-          </HoverCardContent>
-        </HoverCard>
-      </div>
-      <div className="h-full sm:hidden">
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger
-            aria-label={`เลือกรูปแบบ${title}`}
-            render={<Button className={triggerClassName} variant="ghost" />}
-          >
-            {children}
-          </DialogTrigger>
-          <DialogContent
-            className="max-w-[calc(100%_-_2rem)] gap-3 p-4"
-            showCloseButton={false}
-          >
-            <DialogHeader>
-              <DialogTitle>{title}</DialogTitle>
-            </DialogHeader>
-            {content(() => setDialogOpen(false))}
-          </DialogContent>
-        </Dialog>
-      </div>
-    </>
+    <Dialog
+      open={dialogOpen}
+      onOpenChange={(open) => {
+        setDialogOpen(open);
+        if (open) {
+          setHoverCardOpen(false);
+        }
+      }}
+    >
+      <HoverCard open={hoverCardOpen} onOpenChange={setHoverCardOpen}>
+        <HoverCardTrigger
+          closeDelay={180}
+          delay={120}
+          render={
+            <DialogTrigger
+              aria-label={`เลือกรูปแบบ${title}`}
+              render={
+                <Button
+                  className="h-full w-full rounded-none p-0 hover:bg-card/70"
+                  variant="ghost"
+                />
+              }
+            />
+          }
+        >
+          {children}
+        </HoverCardTrigger>
+        <HoverCardContent
+          align={align}
+          className={cn("hidden flex-col gap-3 p-3 sm:flex", contentClassName)}
+          side="top"
+        >
+          <p className="text-sm font-medium">{title}</p>
+          {content(() => setHoverCardOpen(false))}
+        </HoverCardContent>
+      </HoverCard>
+      <DialogContent
+        className="max-w-[calc(100%_-_2rem)] gap-3 p-4 sm:max-w-md"
+        showCloseButton={false}
+      >
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        {content(() => setDialogOpen(false))}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -140,162 +134,144 @@ function TargetVariantDock({
   onPetPackageChange,
 }: TargetVariantDockProps) {
   return (
-    <section
-      aria-label="รูปแบบทีมเป้าหมาย"
-      className="grid overflow-hidden rounded-xl border bg-accent sm:grid-cols-[6.5rem_minmax(0,1fr)_7rem] sm:grid-rows-2"
-    >
-      <div className="col-span-3 row-start-1 min-w-0 border-b sm:col-span-1 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:border-x sm:border-b-0">
+    <section aria-label="รูปแบบทีมเป้าหมาย">
+      <Lineup.Surface>
         <Lineup.Rows
           loading="eager"
           team={withFormation(team, selectedFormation)}
         />
-      </div>
-      <div className="col-start-1 row-start-2 min-h-24 sm:col-start-1 sm:row-start-1">
-        <VariantSelector
-          align="start"
-          title="ความเร็ว"
-          content={(close) => (
-            <FieldSet className="gap-2">
-              <FieldLegend className="sr-only">ความเร็ว</FieldLegend>
-              <RadioGroup
-                aria-label="เลือกรูปแบบความเร็ว"
-                className="grid grid-cols-3 gap-2"
-                value={selectedSpeed}
-                onValueChange={(value) => {
-                  if (typeof value === "string") {
-                    onSpeedChange(value as TargetVariants["speeds"][number]);
-                    close();
-                  }
-                }}
-              >
-                {speedOptions.map((speed) => {
-                  const available = variants.speeds.includes(speed);
-                  return (
-                    <FieldLabel key={speed} className="h-full">
-                      <Field
-                        data-disabled={!available || undefined}
-                        className="items-center justify-center text-center"
-                      >
-                        <FieldContent className="items-center justify-center">
-                          <FieldTitle>{speed}</FieldTitle>
-                        </FieldContent>
-                        <RadioGroupItem
-                          className="sr-only!"
-                          disabled={!available}
-                          value={speed}
-                        />
-                      </Field>
-                    </FieldLabel>
-                  );
-                })}
-              </RadioGroup>
-            </FieldSet>
-          )}
-        >
-          <span className="flex h-full flex-col items-start justify-center gap-1">
-            <SneakerMoveIcon
-              aria-hidden="true"
-              className="size-4 text-primary"
-            />
-            <span className="text-xs text-muted-foreground">ความเร็ว</span>
-            <span className="text-sm font-medium">{selectedSpeed}</span>
-          </span>
-        </VariantSelector>
-      </div>
-      <div className="col-start-2 row-start-2 min-h-24 border-l sm:col-start-3 sm:row-start-1 sm:border-l-0">
-        <VariantSelector
-          align="end"
-          contentClassName="w-80"
-          title="สัตว์เลี้ยง"
-          content={(close) => (
-            <FieldSet className="gap-2">
-              <FieldLegend className="sr-only">สัตว์เลี้ยง</FieldLegend>
-              <RadioGroup
-                aria-label="เลือกสัตว์เลี้ยง"
-                className="grid grid-cols-3 gap-2"
-                value={selectedPetPackage.join("|")}
-                onValueChange={(value) => {
-                  if (typeof value === "string") {
-                    const pets = variants.petPackages.find(
-                      (option) => option.join("|") === value
-                    );
-                    if (pets) {
-                      onPetPackageChange(pets);
+        <Lineup.Variants>
+          <VariantSelector
+            align="start"
+            title="ความเร็ว"
+            content={(close) => (
+              <FieldSet className="gap-2">
+                <FieldLegend className="sr-only">ความเร็ว</FieldLegend>
+                <RadioGroup
+                  aria-label="เลือกรูปแบบความเร็ว"
+                  className="grid grid-cols-3 gap-2"
+                  value={selectedSpeed}
+                  onValueChange={(value) => {
+                    if (typeof value === "string") {
+                      onSpeedChange(value as TargetVariants["speeds"][number]);
                       close();
                     }
-                  }
-                }}
-              >
-                {variants.petPackages.map((pets) => (
-                  <FieldLabel key={pets.join("|")} className="min-h-32">
-                    <Field className="h-full items-center justify-center text-center">
-                      <FieldContent className="items-center justify-center">
-                        <PetChoice pets={pets} />
-                      </FieldContent>
-                      <RadioGroupItem
-                        className="sr-only!"
-                        value={pets.join("|")}
-                      />
-                    </Field>
-                  </FieldLabel>
-                ))}
-              </RadioGroup>
-            </FieldSet>
-          )}
-        >
-          <span className="flex h-full flex-col items-center justify-center">
-            <PetChoice pets={selectedPetPackage} />
-          </span>
-        </VariantSelector>
-      </div>
-      <div className="col-start-3 row-start-2 min-h-24 border-l sm:col-start-3 sm:row-start-2 sm:border-t sm:border-l-0">
-        <VariantSelector
-          align="end"
-          side="top"
-          title="การจัดแถว"
-          content={(close) => (
-            <FieldSet className="gap-2">
-              <FieldLegend className="sr-only">การจัดแถว</FieldLegend>
-              <RadioGroup
-                aria-label="เลือกการจัดแถว"
-                className="grid grid-cols-2 gap-2"
-                value={selectedFormation}
-                onValueChange={(value) => {
-                  if (typeof value === "string") {
-                    onFormationChange(value as TargetFormation);
-                    close();
-                  }
-                }}
-              >
-                {formationOptions.map((formation) => {
-                  const available = variants.formations.includes(formation);
-                  return (
-                    <FieldLabel key={formation} className="aspect-square">
-                      <Field
-                        data-disabled={!available || undefined}
-                        className="h-full items-center justify-center text-center"
-                      >
+                  }}
+                >
+                  {speedOptions.map((speed) => {
+                    const available = variants.speeds.includes(speed);
+                    return (
+                      <FieldLabel key={speed} className="h-full">
+                        <Field
+                          data-disabled={!available || undefined}
+                          className="items-center justify-center text-center"
+                        >
+                          <FieldContent className="items-center justify-center">
+                            <FieldTitle>{speed}</FieldTitle>
+                          </FieldContent>
+                          <RadioGroupItem
+                            className="sr-only!"
+                            disabled={!available}
+                            value={speed}
+                          />
+                        </Field>
+                      </FieldLabel>
+                    );
+                  })}
+                </RadioGroup>
+              </FieldSet>
+            )}
+          >
+            <Lineup.Speed value={selectedSpeed} />
+          </VariantSelector>
+
+          <VariantSelector
+            contentClassName="w-80"
+            title="สัตว์เลี้ยง"
+            content={(close) => (
+              <FieldSet className="gap-2">
+                <FieldLegend className="sr-only">สัตว์เลี้ยง</FieldLegend>
+                <RadioGroup
+                  aria-label="เลือกสัตว์เลี้ยง"
+                  className="grid grid-cols-3 gap-2"
+                  value={selectedPetPackage.join("|")}
+                  onValueChange={(value) => {
+                    if (typeof value === "string") {
+                      const pets = variants.petPackages.find(
+                        (option) => option.join("|") === value
+                      );
+                      if (pets) {
+                        onPetPackageChange(pets);
+                        close();
+                      }
+                    }
+                  }}
+                >
+                  {variants.petPackages.map((pets) => (
+                    <FieldLabel key={pets.join("|")} className="min-h-32">
+                      <Field className="h-full items-center justify-center text-center">
                         <FieldContent className="items-center justify-center">
-                          <FormationPreview formation={formation} />
+                          <PetChoice pets={pets} />
                         </FieldContent>
                         <RadioGroupItem
                           className="sr-only!"
-                          disabled={!available}
-                          value={formation}
+                          value={pets.join("|")}
                         />
                       </Field>
                     </FieldLabel>
-                  );
-                })}
-              </RadioGroup>
-            </FieldSet>
-          )}
-        >
-          <span className="flex h-full flex-col items-center justify-center">
-            <FormationPreview formation={selectedFormation} />
-          </span>
-        </VariantSelector>
-      </div>
+                  ))}
+                </RadioGroup>
+              </FieldSet>
+            )}
+          >
+            <Lineup.Pets pets={selectedPetPackage} />
+          </VariantSelector>
+
+          <VariantSelector
+            align="end"
+            title="การจัดแถว"
+            content={(close) => (
+              <FieldSet className="gap-2">
+                <FieldLegend className="sr-only">การจัดแถว</FieldLegend>
+                <RadioGroup
+                  aria-label="เลือกการจัดแถว"
+                  className="grid grid-cols-2 gap-2"
+                  value={selectedFormation}
+                  onValueChange={(value) => {
+                    if (typeof value === "string") {
+                      onFormationChange(value as TargetFormation);
+                      close();
+                    }
+                  }}
+                >
+                  {formationOptions.map((formation) => {
+                    const available = variants.formations.includes(formation);
+                    return (
+                      <FieldLabel key={formation} className="aspect-square">
+                        <Field
+                          data-disabled={!available || undefined}
+                          className="h-full items-center justify-center text-center"
+                        >
+                          <FieldContent className="items-center justify-center">
+                            <FormationPreview formation={formation} />
+                          </FieldContent>
+                          <RadioGroupItem
+                            className="sr-only!"
+                            disabled={!available}
+                            value={formation}
+                          />
+                        </Field>
+                      </FieldLabel>
+                    );
+                  })}
+                </RadioGroup>
+              </FieldSet>
+            )}
+          >
+            <Lineup.Formation formation={selectedFormation} />
+          </VariantSelector>
+        </Lineup.Variants>
+      </Lineup.Surface>
     </section>
   );
 }
@@ -317,18 +293,20 @@ export function TargetSummary({ team }: { team: Team }) {
   );
 
   return (
-    <Card
+    <section
       aria-labelledby="target-summary-title"
-      className="mx-auto w-full max-w-4xl border-l-4 border-l-red [--card-spacing:--spacing(5)]"
+      className="mx-auto grid w-full max-w-lg items-start gap-4 lg:mx-0 lg:max-w-none lg:grid-cols-[minmax(0,1fr)_32rem] lg:gap-8"
     >
-      <CardHeader className="gap-2">
-        <p className="text-xs font-medium text-red">ทีมเป้าหมาย</p>
-        <CardTitle
+      <div className="grid gap-2">
+        <p className={cn("text-xs font-medium", teamTypeTextClass(team))}>
+          ทีมเป้าหมาย
+        </p>
+        <h1
           id="target-summary-title"
           className="text-2xl font-semibold tracking-tight"
         >
           {team.title}
-        </CardTitle>
+        </h1>
         <div className="flex flex-wrap gap-1.5">
           <TeamTypeBadge team={team} />
           {team.tags?.map((tag) => (
@@ -337,22 +315,20 @@ export function TargetSummary({ team }: { team: Team }) {
             </Badge>
           ))}
         </div>
-        <CardDescription className="leading-relaxed">
+        <p className="text-sm leading-relaxed text-muted-foreground">
           {team.condition}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <TargetVariantDock
-          team={team}
-          variants={variants}
-          selectedSpeed={selectedSpeed}
-          selectedFormation={selectedFormation}
-          selectedPetPackage={selectedPetPackage}
-          onSpeedChange={setSelectedSpeed}
-          onFormationChange={setSelectedFormation}
-          onPetPackageChange={setSelectedPetPackage}
-        />
-      </CardContent>
-    </Card>
+        </p>
+      </div>
+      <TargetVariantDock
+        team={team}
+        variants={variants}
+        selectedSpeed={selectedSpeed}
+        selectedFormation={selectedFormation}
+        selectedPetPackage={selectedPetPackage}
+        onSpeedChange={setSelectedSpeed}
+        onFormationChange={setSelectedFormation}
+        onPetPackageChange={setSelectedPetPackage}
+      />
+    </section>
   );
 }

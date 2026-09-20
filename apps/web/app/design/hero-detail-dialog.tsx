@@ -94,10 +94,12 @@ function HeroDetailTile({
   hero,
   className,
   loading,
+  shared,
 }: {
   hero: Hero;
   className?: string;
   loading?: "eager" | "lazy";
+  shared?: boolean;
 }) {
   const guidance = heroGuidance[hero.role] ?? defaultHeroGuidance;
   const roleIconSrc = heroRoleIconByRole[hero.role] ?? universalRoleIconSrc;
@@ -112,12 +114,9 @@ function HeroDetailTile({
           className
         )}
       >
-        <HeroPortrait hero={hero} loading={loading} />
+        <HeroPortrait hero={hero} loading={loading} shared={shared} />
       </DialogTrigger>
-      <DialogContent
-        className="max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto p-5 sm:max-w-3xl"
-        lang="th"
-      >
+      <DialogContent className="max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto p-5 sm:max-w-3xl">
         <DialogHeader className="gap-4 pr-8">
           <div className="flex items-center gap-4">
             <HeroPortrait
@@ -131,7 +130,7 @@ function HeroDetailTile({
               <div className="flex flex-wrap items-center gap-2">
                 <Image
                   alt={`ประเภท ${hero.role}`}
-                  className="size-6"
+                  className="size-6 select-none"
                   height={40}
                   src={roleIconSrc}
                   width={40}
@@ -194,20 +193,20 @@ function HeroDetailTile({
                       <Image
                         fill
                         alt=""
-                        className="object-fill"
+                        className="object-fill select-none"
                         sizes="48px"
                         src={itemGradeFrameSrc}
                       />
                       <Image
                         fill
                         alt=""
-                        className="z-10 object-contain p-1"
+                        className="z-10 object-contain p-1 select-none"
                         sizes="48px"
                         src={`${gameUiAssetBaseUrl}/${slot.item}`}
                       />
                       <Image
                         alt=""
-                        className="absolute right-0.5 bottom-0.5 z-20 size-4 drop-shadow-sm"
+                        className="absolute right-0.5 bottom-0.5 z-20 size-4 drop-shadow-sm select-none"
                         height={64}
                         src={`${gameUiAssetBaseUrl}/${slot.set}`}
                         width={64}
@@ -240,17 +239,19 @@ export function CounterHeroTile({
   className,
   skills = [],
   loading,
+  shared,
 }: {
   hero: Hero;
   className?: string;
   skills?: SkillOrder[];
   loading?: "eager" | "lazy";
+  shared?: boolean;
 }) {
   const skillBySlot = new Map(skills.map((skill) => [skill.slot, skill]));
 
   return (
     <div className={cn("relative w-18 shrink-0", className)}>
-      <HeroDetailTile hero={hero} loading={loading} />
+      <HeroDetailTile hero={hero} loading={loading} shared={shared} />
       {skills.length ? (
         <ol
           aria-label={`ลำดับสกิล ${hero.name}`}
@@ -274,15 +275,15 @@ export function CounterHeroTile({
               >
                 <span
                   className={cn(
-                    "relative grid size-5 place-items-center rounded-full text-[10px] font-semibold shadow-sm",
+                    "relative grid size-5 place-items-center rounded-full text-xs font-semibold shadow-sm",
                     slot === "A" &&
                       "after:pointer-events-none after:absolute after:inset-0.5 after:rounded-full after:border",
                     slot === "A" &&
                       skill &&
-                      "border border-background after:border-background",
+                      "border border-primary-foreground/70 after:border-primary-foreground/70",
                     slot === "A" && !skill && "after:border-border",
                     skill
-                      ? "bg-foreground text-background"
+                      ? "bg-primary text-primary-foreground"
                       : "border bg-card text-muted-foreground"
                   )}
                 >
