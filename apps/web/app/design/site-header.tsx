@@ -203,15 +203,18 @@ export function SiteHeader({
                 )}
               >
                 <BrandMark priority className="h-12" />
-                <span className="truncate text-base font-semibold tracking-tight">
+                <span className="truncate text-base leading-5 font-semibold tracking-tight">
                   Poysian
                 </span>
               </Link>
               <p className="hidden min-w-0 items-center gap-2 text-sm font-normal text-muted-foreground sm:flex">
-                <span aria-hidden="true" className="text-muted-foreground/50">
+                <span
+                  aria-hidden="true"
+                  className="leading-none text-muted-foreground/50"
+                >
                   /
                 </span>
-                <span className="truncate text-sm tracking-tight">
+                <span className="truncate text-sm leading-5 tracking-tight">
                   {guildName}
                 </span>
               </p>

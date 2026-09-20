@@ -78,6 +78,25 @@ function EmptyStateArt() {
 
 const GUILD_NAME = "PANDOARA";
 
+/**
+ * On the discovery view this is live feedback for the filters right below it,
+ * so the numeral carries the weight and the unit recedes — bumping both would
+ * have it competing with the heading instead of answering it.
+ */
+function TeamCount({ live = false, value }: { live?: boolean; value: number }) {
+  return (
+    <p
+      aria-live={live ? "polite" : undefined}
+      className="text-sm text-muted-foreground"
+    >
+      <span className="text-lg font-semibold text-foreground tabular-nums">
+        {value}
+      </span>{" "}
+      ทีม
+    </p>
+  );
+}
+
 function SectionHeading({
   id,
   title,
@@ -436,11 +455,7 @@ export function DesignPreview({
                       id="saved-counters-heading"
                       title="ทีมแก้ที่บันทึกไว้"
                       description="เลือกทีมแก้เพื่อดูลำดับสกิลและแผนการรบ"
-                      aside={
-                        <span className="text-sm font-medium text-foreground tabular-nums">
-                          {counters.length} ทีม
-                        </span>
-                      }
+                      aside={<TeamCount value={counters.length} />}
                     />
                     {counters.length ? (
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -477,14 +492,7 @@ export function DesignPreview({
               id="targets-heading"
               title="ทีมเป้าหมาย"
               description="เลือกเป้าหมายเพื่อดูทีมแก้ที่กิลด์บันทึกไว้"
-              aside={
-                <p
-                  aria-live="polite"
-                  className="text-sm font-medium text-foreground tabular-nums"
-                >
-                  {filtered.length} ทีม
-                </p>
-              }
+              aside={<TeamCount live value={filtered.length} />}
             />
 
             <div className="grid gap-4 rounded-2xl border bg-card p-4">

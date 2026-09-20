@@ -269,7 +269,8 @@ export function FormationPreview({
 }) {
   // The sprites keep their full canvas: trimming to content would make the
   // four options jump around, since the game centres them by canvas, not bbox.
-  const art = (
+  // The picker composes its own caption bar, so this returns art either way.
+  return (
     <Image
       alt=""
       aria-hidden="true"
@@ -279,19 +280,6 @@ export function FormationPreview({
       src={formationSpriteSrc(formation, compact)}
       width={compact ? 90 : 186}
     />
-  );
-
-  if (compact) {
-    return art;
-  }
-
-  return (
-    <div className="flex flex-col items-center gap-1.5 text-center">
-      {art}
-      <span className="text-xs whitespace-nowrap text-muted-foreground">
-        {formationLabel(formation)}
-      </span>
-    </div>
   );
 }
 
@@ -332,7 +320,7 @@ export function PetPortrait({
       className={cn(
         "relative isolate z-0 grid aspect-square place-items-center overflow-hidden border bg-muted",
         size === "primary"
-          ? "w-14 rounded-tl-lg rounded-tr-xs rounded-br-lg rounded-bl-xs shadow-md"
+          ? "w-18 rounded-tl-xl rounded-tr-xs rounded-br-xl rounded-bl-xs shadow-md"
           : "w-10 rounded-tl-md rounded-tr-xs rounded-br-md rounded-bl-xs shadow-sm"
       )}
     >
@@ -346,7 +334,7 @@ export function PetPortrait({
           fill
           alt=""
           className="object-cover select-none"
-          sizes={size === "primary" ? "56px" : "40px"}
+          sizes={size === "primary" ? "72px" : "40px"}
           src={heroRarityBackgroundSrcByRarity.gold}
         />
         {image ? (
@@ -354,7 +342,7 @@ export function PetPortrait({
             fill
             alt=""
             className="z-10 origin-bottom scale-125 object-cover select-none"
-            sizes={size === "primary" ? "56px" : "40px"}
+            sizes={size === "primary" ? "72px" : "40px"}
             src={`http://127.0.0.1:9000/pets/${image}.png`}
           />
         ) : null}
@@ -363,7 +351,7 @@ export function PetPortrait({
         alt=""
         className="pointer-events-none absolute top-0 right-0 z-20 h-auto w-full select-none"
         height={128}
-        sizes={size === "primary" ? "56px" : "40px"}
+        sizes={size === "primary" ? "72px" : "40px"}
         src={heroRarityFrameSrc}
         width={145}
       />
@@ -380,7 +368,10 @@ export function PetChoice({ pets }: { pets: string[] }) {
 
   return (
     <div className="grid w-full max-w-28 shrink-0 place-items-center text-center">
-      <div className="flex flex-col items-center gap-1.5">
+      {/* A full package is five: the lead pet over two rows of two. The gaps
+          are picked so that case measures exactly 10.5rem tall —
+          72 + 12 + (40 + 4 + 40) — which is what the picker's cells size to. */}
+      <div className="flex flex-col items-center gap-3">
         <PetPortrait pet={primaryPet} size="primary" />
         {companionPets.length ? (
           <div
@@ -403,7 +394,6 @@ export function PetChoice({ pets }: { pets: string[] }) {
             ))}
           </div>
         ) : null}
-        <span className="sr-only">{pets.join(", ")}</span>
       </div>
     </div>
   );
@@ -461,18 +451,16 @@ function VariantFace({
       {visual}
       <span
         className={cn(
-          "grid max-w-full min-w-0 text-center",
+          "grid max-w-full min-w-0 justify-items-center text-center",
           !showValue && "sr-only"
         )}
       >
-        <span className="sr-only">{caption}</span>
-        <span
-          className={cn(
-            showValue && "truncate text-xs leading-tight font-medium"
-          )}
-        >
-          {value}
-        </span>
+        <span className="sr-only">{`${caption} ${value}`}</span>
+        {showValue ? (
+          <span className="truncate text-xs leading-tight font-medium">
+            {value}
+          </span>
+        ) : null}
       </span>
     </span>
   );
@@ -526,6 +514,7 @@ function LineupFormation({ formation }: { formation: TargetFormation }) {
   return (
     <VariantFace
       caption="แผนการรบ"
+      showValue={false}
       value={formationLabel(formation)}
       visual={<FormationPreview compact formation={formation} />}
     />

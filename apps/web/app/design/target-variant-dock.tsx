@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { CheckIcon } from "@phosphor-icons/react";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -27,6 +28,7 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@workspace/ui/components/radio-group";
+import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   type PetPackage,
@@ -34,7 +36,13 @@ import {
   type TargetVariants,
   type Team,
 } from "./_data";
-import { FormationPreview, Lineup, PetChoice, withFormation } from "./lineup";
+import {
+  formationLabel,
+  FormationPreview,
+  Lineup,
+  PetChoice,
+  withFormation,
+} from "./lineup";
 import { TeamTypeBadge, teamTypeTextClass } from "./team-card";
 
 const speedOptions: Array<TargetVariants["speeds"][number]> = [
@@ -42,13 +50,38 @@ const speedOptions: Array<TargetVariants["speeds"][number]> = [
   "ช้า",
   "เร็ว",
 ];
-const formationOptions: TargetFormation[] = ["1-4", "2-3", "3-2", "4-1"];
+/** The order the game's own picker uses, which is also the sprite order. */
+const formationOptions: TargetFormation[] = ["3-2", "2-3", "4-1", "1-4"];
+
+/**
+ * A tinted fill alone is easy to miss across four options, so the game marks
+ * its choice with a corner check as well. FieldLabel names its own group, and
+ * the checked state lives on the radio it wraps.
+ */
+function SelectedMark() {
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute top-1.5 left-1.5 z-10 grid size-4 place-items-center rounded-full bg-primary text-primary-foreground opacity-0 transition-opacity group-has-data-checked/field-label:opacity-100"
+    >
+      <CheckIcon className="size-2.5" weight="bold" />
+    </span>
+  );
+}
+
+/** Art-forward option card: the sprite fills the frame, the label sits in a
+ *  bar along the bottom edge — the anatomy the game's own picker uses. */
+const optionCard =
+  "relative overflow-hidden has-data-checked:border-primary *:data-[slot=field]:p-0";
+const optionCaption =
+  "w-full bg-muted px-2 py-1.5 text-center text-xs leading-tight font-medium";
 
 type VariantSelectorProps = {
   title: string;
   children: ReactNode;
   content: (close: () => void) => ReactNode;
   contentClassName?: string;
+  dialogClassName?: string;
   align?: "start" | "end" | "center";
 };
 
@@ -57,6 +90,7 @@ function VariantSelector({
   children,
   content,
   contentClassName,
+  dialogClassName,
   align = "center",
 }: VariantSelectorProps) {
   const [hoverCardOpen, setHoverCardOpen] = useState(false);
@@ -95,7 +129,7 @@ function VariantSelector({
         <HoverCardContent
           align={align}
           className={cn(
-            "hidden flex-col gap-2.5 p-3 sm:flex",
+            "hidden flex-col gap-2.5 p-3 [--popup-pad:0.75rem] [--popup-radius:var(--radius-lg)] sm:flex",
             contentClassName
           )}
           side="top"
@@ -105,8 +139,10 @@ function VariantSelector({
         </HoverCardContent>
       </HoverCard>
       <DialogContent
-        className="max-w-[calc(100%_-_2rem)] gap-3 p-4 sm:max-w-md"
-        showCloseButton={false}
+        className={cn(
+          "max-w-[calc(100%-2rem)] gap-3 p-4 [--popup-pad:1rem] [--popup-radius:var(--radius-xl)] sm:max-w-md",
+          dialogClassName
+        )}
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -150,6 +186,7 @@ function TargetVariantDock({
         <Lineup.Variants>
           <VariantSelector
             align="start"
+            dialogClassName="w-96"
             title="ความเร็ว"
             content={(close) => (
               <FieldSet className="gap-2">
@@ -168,7 +205,10 @@ function TargetVariantDock({
                   {speedOptions.map((speed) => {
                     const available = variants.speeds.includes(speed);
                     return (
-                      <FieldLabel key={speed} className="h-full">
+                      <FieldLabel
+                        key={speed}
+                        className="relative h-full has-data-checked:border-primary"
+                      >
                         <Field
                           data-disabled={!available || undefined}
                           className="items-center justify-center text-center"
@@ -182,6 +222,7 @@ function TargetVariantDock({
                             value={speed}
                           />
                         </Field>
+                        <SelectedMark />
                       </FieldLabel>
                     );
                   })}
@@ -193,41 +234,95 @@ function TargetVariantDock({
           </VariantSelector>
 
           <VariantSelector
-            contentClassName="w-80"
+            // Wide enough for the companion row: 40 + 4 + 40 inside a
+            // third of the card, once its padding is taken out.
+            contentClassName="w-96"
             title="สัตว์เลี้ยง"
             content={(close) => (
               <FieldSet className="gap-2">
                 <FieldLegend className="sr-only">สัตว์เลี้ยง</FieldLegend>
-                <RadioGroup
-                  aria-label="เลือกสัตว์เลี้ยง"
-                  className="grid grid-cols-3 gap-2"
-                  value={selectedPetPackage.join("|")}
-                  onValueChange={(value) => {
-                    if (typeof value === "string") {
-                      const pets = variants.petPackages.find(
-                        (option) => option.join("|") === value
-                      );
-                      if (pets) {
-                        onPetPackageChange(pets);
-                        close();
-                      }
-                    }
-                  }}
+                {/* Two per view, the rest on a scroll. A real scrollport over
+                    a carousel: arrow-keying a RadioGroup moves focus, and the
+                    browser scrolls a focused option into view for free — an
+                    embla track would leave focus on a slide you cannot see.
+                    Base UI lays the scrollbar over the viewport's foot, so
+                    the scrollport bleeds through the popup's own p-3 on three
+                    sides to seat the track into the bottom corners — both
+                    surfaces pad by 3 for that one number to work, and each
+                    publishes its radius so the clip follows its own curve. The
+                    row insets with zero-width pseudo-elements: a flex scroll
+                    container drops trailing padding, and `last:` cannot be
+                    trusted here because RadioGroup renders nodes past the
+                    options. Each spacer earns a gap, so one value — the
+                    surface's own padding, published as --popup-pad — is the
+                    bleed, the gap and the inset at once: P + c + P + c + P is
+                    the viewport, so the basis is 50% - 1.5P, and the third
+                    card starts at exactly the far edge with no sliver.
+
+                    The trailing spacer is a pixel wide pulled back by a
+                    pixel: it has to be a real box, since the scrollable
+                    overflow region discards empty rectangles and would take
+                    the gap in front of it along too — but it must cost no
+                    width, or two cards would overflow by that pixel and raise
+                    a scrollbar with nothing to scroll. The leading one can be
+                    plain zero; it only pushes layout forward.
+
+                    pt-1 buys the focus ring its 3px inside the scrollport,
+                    which clips on every side once overflow-x is set; -mt-1
+                    hands that space back so the row keeps the popup's own
+                    rhythm instead of sitting 4px below it. */}
+                <ScrollArea
+                  className="-mx-(--popup-pad) -mt-1 -mb-(--popup-pad) overflow-hidden rounded-b-(--popup-radius)"
+                  orientation="horizontal"
                 >
-                  {variants.petPackages.map((pets) => (
-                    <FieldLabel key={pets.join("|")} className="min-h-32">
-                      <Field className="h-full items-center justify-center text-center">
-                        <FieldContent className="items-center justify-center">
-                          <PetChoice pets={pets} />
-                        </FieldContent>
-                        <RadioGroupItem
-                          className="sr-only!"
-                          value={pets.join("|")}
-                        />
-                      </Field>
-                    </FieldLabel>
-                  ))}
-                </RadioGroup>
+                  <RadioGroup
+                    aria-label="เลือกสัตว์เลี้ยง"
+                    className="flex gap-(--popup-pad) pt-1 pb-4 before:w-0 before:shrink-0 before:content-[''] after:-ml-px after:w-px after:shrink-0 after:content-['']"
+                    value={selectedPetPackage.join("|")}
+                    onValueChange={(value) => {
+                      if (typeof value === "string") {
+                        const pets = variants.petPackages.find(
+                          (option) => option.join("|") === value
+                        );
+                        if (pets) {
+                          onPetPackageChange(pets);
+                          close();
+                        }
+                      }
+                    }}
+                  >
+                    {variants.petPackages.map((pets) => (
+                      <FieldLabel
+                        key={pets.join("|")}
+                        className={cn(
+                          optionCard,
+                          "shrink-0 basis-[calc(50%-var(--popup-pad)*1.5)]"
+                        )}
+                      >
+                        <Field className="h-full items-center justify-between gap-0 text-center">
+                          <FieldContent className="items-center justify-center p-2.5">
+                            <PetChoice pets={pets} />
+                          </FieldContent>
+                          <span className={optionCaption}>
+                            {pets[0]}
+                            {pets.length > 1 ? (
+                              <span className="text-muted-foreground">
+                                {" "}
+                                +{pets.length - 1}
+                              </span>
+                            ) : null}
+                            <span className="sr-only">{pets.join(", ")}</span>
+                          </span>
+                          <RadioGroupItem
+                            className="sr-only!"
+                            value={pets.join("|")}
+                          />
+                        </Field>
+                        <SelectedMark />
+                      </FieldLabel>
+                    ))}
+                  </RadioGroup>
+                </ScrollArea>
               </FieldSet>
             )}
           >
@@ -236,6 +331,7 @@ function TargetVariantDock({
 
           <VariantSelector
             align="end"
+            dialogClassName="w-96"
             title="แผนการรบ"
             content={(close) => (
               <FieldSet className="gap-2">
@@ -254,20 +350,24 @@ function TargetVariantDock({
                   {formationOptions.map((formation) => {
                     const available = variants.formations.includes(formation);
                     return (
-                      <FieldLabel key={formation}>
+                      <FieldLabel key={formation} className={optionCard}>
                         <Field
                           data-disabled={!available || undefined}
-                          className="h-full items-center justify-center text-center"
+                          className="h-full items-center justify-between gap-0 text-center"
                         >
-                          <FieldContent className="items-center justify-center">
+                          <FieldContent className="items-center justify-center p-2.5">
                             <FormationPreview formation={formation} />
                           </FieldContent>
+                          <span className={optionCaption}>
+                            {formationLabel(formation)}
+                          </span>
                           <RadioGroupItem
                             className="sr-only!"
                             disabled={!available}
                             value={formation}
                           />
                         </Field>
+                        <SelectedMark />
                       </FieldLabel>
                     );
                   })}
