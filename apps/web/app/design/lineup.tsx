@@ -1,7 +1,5 @@
 import { type ReactNode } from "react";
 import Image from "next/image";
-import { SneakerMoveIcon } from "@phosphor-icons/react";
-import { Separator } from "@workspace/ui/components/separator";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   type Hero,
@@ -14,6 +12,8 @@ export const gameUiAssetBaseUrl = "http://127.0.0.1:9000/game-ui";
 export const heroRarityFrameSrc = `${gameUiAssetBaseUrl}/Atl_UI-List_SPBG01.png`;
 export const itemGradeFrameSrc = `${gameUiAssetBaseUrl}/Item_GradeBG01.png`;
 export const universalRoleIconSrc = `${gameUiAssetBaseUrl}/RoleIcon_05.png`;
+/** StatIcon_09 is the game's winged boot; see SpeedIcon for why it is a mask. */
+const speedIconMaskSrc = `${gameUiAssetBaseUrl}/Tex_StatIcon_09_Duotone.png`;
 
 export const heroRoleIconByRole: Record<string, string> = {
   โจมตี: `${gameUiAssetBaseUrl}/RoleIcon_01.png`,
@@ -46,6 +46,8 @@ export function HeroPortrait({
 }) {
   const roleIconSrc = heroRoleIconByRole[hero.role] ?? universalRoleIconSrc;
   const imageSizes = size === "sm" ? "2.75rem" : "4.5rem";
+  // The portrait paints at 1.25x its frame, so it needs a source to match.
+  const portraitSizes = size === "sm" ? "3.5rem" : "5.625rem";
 
   return (
     <div
@@ -55,7 +57,7 @@ export function HeroPortrait({
         className
       )}
     >
-      <div className="relative isolate z-0 grid aspect-[0.8] w-full place-items-center overflow-hidden rounded-tl-xl rounded-tr-xs rounded-br-xl rounded-bl-xs border bg-muted shadow-lg">
+      <div className="relative isolate z-0 grid aspect-square w-full place-items-center overflow-hidden rounded-tl-xl rounded-tr-xs rounded-br-xl rounded-bl-xs border bg-muted shadow-lg">
         <div className="absolute inset-0.5 overflow-hidden rounded-[inherit]">
           <Image
             fill
@@ -69,9 +71,9 @@ export function HeroPortrait({
             <Image
               fill
               alt=""
-              className="z-10 object-cover select-none"
+              className="z-10 scale-125 object-cover select-none"
               loading={loading}
-              sizes={imageSizes}
+              sizes={portraitSizes}
               src={`http://127.0.0.1:9000/heroes/${hero.image}.png`}
             />
           ) : (
@@ -95,8 +97,8 @@ export function HeroPortrait({
         <Image
           alt=""
           className={cn(
-            "absolute left-0.5 z-30 drop-shadow-sm select-none",
-            size === "sm" ? "bottom-1 size-3" : "bottom-2.5 size-4.5"
+            "absolute bottom-0.5 left-0.5 z-30 drop-shadow-sm select-none",
+            size === "sm" ? "size-3" : "bottom-0.5 size-4.5"
           )}
           height={40}
           loading={loading}
@@ -157,7 +159,7 @@ function LineupRows({
 }) {
   return (
     <div
-      className="mx-auto grid min-h-0 w-full max-w-sm grid-rows-2 gap-1 p-2.5 [--lineup-hero-label-offset:calc((1rem+0.125rem)/2)]"
+      className="mx-auto grid min-h-0 w-full max-w-sm grid-rows-2 gap-4 p-2.5 [--lineup-hero-label-offset:calc((1rem+0.125rem)/2)]"
       aria-label="การจัดทีม"
     >
       {(["front", "back"] as const).map((row) => {
@@ -191,17 +193,22 @@ function LineupRows({
                 {row === "back" ? "B" : "F"}
               </span>
             </div>
+            {/* Two heroes spread by a gap and three overlapped by a
+                negative margin land on the same row width when both values are
+                a third of the tile: 2t + t/3 === 3t - 2(t/3). The tile is
+                w-18, so that third is 1.5rem — gap-6 and -ml-6. Change one and
+                the rows stop lining up. */}
             <div
               className={cn(
                 "relative flex min-w-0 flex-1 justify-center pr-6",
-                heroes.length === 2 && "gap-10"
+                heroes.length === 2 && "gap-6"
               )}
             >
               {heroes.map((hero, index) => (
                 <HeroTile
                   key={hero.name}
                   hero={hero}
-                  className={cn(stacked && index > 0 && "-ml-4")}
+                  className={cn(stacked && index > 0 && "-ml-6")}
                   loading={loading}
                   shared={sharedHeroNames?.includes(hero.name)}
                   skills={team.skillOrder?.filter(
@@ -230,6 +237,29 @@ export function formationLabel(formation: TargetFormation) {
   return `หน้า ${frontCount} · หลัง ${backCount}`;
 }
 
+/**
+ * Sprite index per formation, read off the artwork rather than guessed: red
+ * pips are the back row and blue the front, which is the pairing this page
+ * already uses, so the game art needs no legend. 01 is 3 back / 2 front.
+ */
+const formationSpriteIndex = {
+  "3-2": "01",
+  "2-3": "02",
+  "4-1": "03",
+  "1-4": "04",
+} as const satisfies Record<TargetFormation, string>;
+
+/**
+ * Two cuts of the same sprite. `Deck_S` is a flat pip cluster that survives
+ * being 29px tall in the variant strip; `Deck` numbers the five slots, which
+ * is the detail you want while picking and cannot be read at strip size.
+ */
+function formationSpriteSrc(formation: TargetFormation, compact: boolean) {
+  const size = compact ? "S_" : "";
+
+  return `${gameUiAssetBaseUrl}/Atl_TeamDeck_01_Sprite_Deck_${size}${formationSpriteIndex[formation]}.png`;
+}
+
 export function FormationPreview({
   formation,
   compact = false,
@@ -237,53 +267,27 @@ export function FormationPreview({
   formation: TargetFormation;
   compact?: boolean;
 }) {
-  const [backCount, frontCount] = formationRows[formation];
-  const dots = (
-    <>
-      <div className="flex justify-center gap-1">
-        {Array.from({ length: backCount }, (_, index) => (
-          <span
-            key={index}
-            className={cn(
-              "rounded-full bg-red/60",
-              compact ? "size-1.5" : "size-2"
-            )}
-          />
-        ))}
-      </div>
-      <div className="flex justify-center gap-1">
-        {Array.from({ length: frontCount }, (_, index) => (
-          <span
-            key={index}
-            className={cn(
-              "rounded-full bg-blue/60",
-              compact ? "size-1.5" : "size-2"
-            )}
-          />
-        ))}
-      </div>
-    </>
+  // The sprites keep their full canvas: trimming to content would make the
+  // four options jump around, since the game centres them by canvas, not bbox.
+  const art = (
+    <Image
+      alt=""
+      aria-hidden="true"
+      className={cn("h-auto shrink-0 select-none", compact ? "w-10" : "w-28")}
+      height={compact ? 66 : 99}
+      sizes={compact ? "40px" : "112px"}
+      src={formationSpriteSrc(formation, compact)}
+      width={compact ? 90 : 186}
+    />
   );
 
   if (compact) {
-    return (
-      <div
-        aria-hidden="true"
-        className="flex shrink-0 flex-col justify-center gap-1"
-      >
-        {dots}
-      </div>
-    );
+    return art;
   }
 
   return (
     <div className="flex flex-col items-center gap-1.5 text-center">
-      <div
-        aria-hidden="true"
-        className="flex size-14 flex-col justify-center gap-1.5 rounded-full bg-linear-to-br from-primary/20 to-muted px-2 shadow-xs"
-      >
-        {dots}
-      </div>
+      {art}
       <span className="text-xs whitespace-nowrap text-muted-foreground">
         {formationLabel(formation)}
       </span>
@@ -329,20 +333,20 @@ export function PetPortrait({
         "relative isolate z-0 grid aspect-square place-items-center overflow-hidden border bg-muted",
         size === "primary"
           ? "w-14 rounded-tl-lg rounded-tr-xs rounded-br-lg rounded-bl-xs shadow-md"
-          : "rounded-tr-px rounded-bl-px w-7 rounded-tl-sm rounded-br-sm shadow-sm"
+          : "w-10 rounded-tl-md rounded-tr-xs rounded-br-md rounded-bl-xs shadow-sm"
       )}
     >
       <div
         className={cn(
           "absolute overflow-hidden rounded-[inherit]",
-          size === "primary" ? "inset-0.5" : "inset-px"
+          "inset-0.5"
         )}
       >
         <Image
           fill
           alt=""
           className="object-cover select-none"
-          sizes={size === "primary" ? "56px" : "28px"}
+          sizes={size === "primary" ? "56px" : "40px"}
           src={heroRarityBackgroundSrcByRarity.gold}
         />
         {image ? (
@@ -350,7 +354,7 @@ export function PetPortrait({
             fill
             alt=""
             className="z-10 origin-bottom scale-125 object-cover select-none"
-            sizes={size === "primary" ? "56px" : "28px"}
+            sizes={size === "primary" ? "56px" : "40px"}
             src={`http://127.0.0.1:9000/pets/${image}.png`}
           />
         ) : null}
@@ -359,7 +363,7 @@ export function PetPortrait({
         alt=""
         className="pointer-events-none absolute top-0 right-0 z-20 h-auto w-full select-none"
         height={128}
-        sizes={size === "primary" ? "56px" : "28px"}
+        sizes={size === "primary" ? "56px" : "40px"}
         src={heroRarityFrameSrc}
         width={145}
       />
@@ -409,7 +413,7 @@ function PetStrip({ pets }: { pets: string[] }) {
   return (
     <div aria-hidden="true" className="flex shrink-0">
       {pets.slice(0, 3).map((pet, index) => (
-        <div key={pet} className={cn(index > 0 && "-ml-1.5")}>
+        <div key={pet} className={cn(index > 0 && "-ml-3")}>
           <PetPortrait pet={pet} />
         </div>
       ))}
@@ -417,36 +421,56 @@ function PetStrip({ pets }: { pets: string[] }) {
   );
 }
 
-/** The strip of variant cells that closes a lineup surface. */
+/**
+ * The variants close the surface as three islands on its field rather than one
+ * band split by rules. Gaps separate them, which also fixes a rule that only
+ * showed half the time: `divide-x` sets a border width, and a selectable cell
+ * is a Button whose own `border-transparent` painted that border away.
+ */
 function LineupVariants({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <Separator />
-      <div className="grid grid-cols-3 divide-x">{children}</div>
-    </>
-  );
+  return <div className="grid grid-cols-3 gap-2 px-2.5 pb-2.5">{children}</div>;
 }
 
 /**
- * Shared shell for a variant cell: a visual that names the facet, and the
- * current value. The caption stays for screen readers only — the shoe, the pet
- * portraits and the formation dots already say which cell is which.
+ * Shared shell for a variant cell: a card carrying a visual that names the
+ * facet, and the current value. The caption stays for screen readers only —
+ * the boot, the pet portraits and the formation pips say which cell is which.
+ *
+ * `showValue` drops the printed line where the art already is the value. The
+ * group-* states only bite when a selectable cell wraps this in a trigger.
  */
 function VariantFace({
   caption,
+  showValue = true,
   value,
   visual,
 }: {
   caption: string;
+  showValue?: boolean;
   value: string;
   visual: ReactNode;
 }) {
   return (
-    <span className="flex h-full w-full min-w-0 flex-col items-center justify-center gap-1 px-2 py-2">
+    <span
+      className={cn(
+        "flex h-full w-full min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg bg-card px-2 py-2.5",
+        "transition-shadow motion-safe:duration-150 motion-reduce:transition-none",
+        "group-hover:shadow-md group-focus-visible:ring-3 group-focus-visible:ring-ring/50"
+      )}
+    >
       {visual}
-      <span className="grid max-w-full min-w-0 text-center">
+      <span
+        className={cn(
+          "grid max-w-full min-w-0 text-center",
+          !showValue && "sr-only"
+        )}
+      >
         <span className="sr-only">{caption}</span>
-        <span className="truncate text-xs leading-tight font-medium">
+        <span
+          className={cn(
+            showValue && "truncate text-xs leading-tight font-medium"
+          )}
+        >
           {value}
         </span>
       </span>
@@ -454,18 +478,36 @@ function VariantFace({
   );
 }
 
+/**
+ * The game draws its speed stat as a winged boot, so the strip borrows it
+ * rather than approximating with a sneaker. The source art is a black outline
+ * around a white fill, which disappears on a dark surface and reads as a blob
+ * if masked by alpha — so the asset is worn as a mask instead, which lets
+ * `--primary` tint it in either theme.
+ *
+ * A mask's alpha doubles as opacity, so one file carries both tones: the ink
+ * is opaque and the wing's interior sits at 35%, filled on its own so the
+ * feathers read as the subject and the boot stays line art. The regions come
+ * from flood-filling the source's enclosed whites, not from a hand-drawn path.
+ */
+function SpeedIcon() {
+  return (
+    <span
+      aria-hidden="true"
+      className="size-5 shrink-0 bg-foreground"
+      style={{
+        maskImage: `url(${speedIconMaskSrc})`,
+        maskPosition: "center",
+        maskRepeat: "no-repeat",
+        maskSize: "contain",
+      }}
+    />
+  );
+}
+
 function LineupSpeed({ value }: { value: string }) {
   return (
-    <VariantFace
-      caption="ความเร็ว"
-      value={value}
-      visual={
-        <SneakerMoveIcon
-          aria-hidden="true"
-          className="size-5 shrink-0 text-primary"
-        />
-      }
-    />
+    <VariantFace caption="ความเร็ว" value={value} visual={<SpeedIcon />} />
   );
 }
 
@@ -473,6 +515,7 @@ function LineupPets({ pets }: { pets: string[] }) {
   return (
     <VariantFace
       caption="สัตว์เลี้ยง"
+      showValue={false}
       value={pets.join(" · ")}
       visual={<PetStrip pets={pets} />}
     />
@@ -482,7 +525,7 @@ function LineupPets({ pets }: { pets: string[] }) {
 function LineupFormation({ formation }: { formation: TargetFormation }) {
   return (
     <VariantFace
-      caption="การจัดแถว"
+      caption="แผนการรบ"
       value={formationLabel(formation)}
       visual={<FormationPreview compact formation={formation} />}
     />

@@ -45,7 +45,12 @@ import {
   type Team,
 } from "./_data";
 import { CounterHeroTile } from "./hero-detail-dialog";
-import { formationLabel, HeroPortrait, Lineup } from "./lineup";
+import {
+  formationLabel,
+  gameUiAssetBaseUrl,
+  HeroPortrait,
+  Lineup,
+} from "./lineup";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
 import { TargetSummary } from "./target-variant-dock";
@@ -56,15 +61,17 @@ import {
   teamTypeTextClass,
 } from "./team-card";
 
-/** The guild mascot, shown large where an empty state has room for it. */
-function Mascot({ className }: { className?: string }) {
+/** The game's own idle illustration — someone waiting it out by a campfire. */
+function EmptyStateArt() {
   return (
     <Image
       alt=""
-      className={cn("mx-auto h-auto scale-125 select-none", className)}
-      height={512}
-      src="/brand/poysian-mark.png"
-      width={512}
+      aria-hidden="true"
+      className="mx-auto mb-4 size-28 select-none"
+      height={256}
+      sizes="112px"
+      src={`${gameUiAssetBaseUrl}/Atl_UI-PopUP_01_Sprite_100.png`}
+      width={256}
     />
   );
 }
@@ -255,6 +262,43 @@ function CounterStrategy({ target, team }: { target: Team; team: Team }) {
   );
 }
 
+/**
+ * A way out, not a destination — so it carries no chrome at rest and only
+ * picks up a hover surface. On the target view the wrapper collapses to zero
+ * height from `lg`: the link then overhangs the text column, which leaves the
+ * top of the page to the lineup.
+ */
+function BackLink({
+  className,
+  href,
+  label,
+}: {
+  className?: string;
+  href: string;
+  label: string;
+}) {
+  return (
+    // `relative` is load-bearing: with `lg:h-0` the link overhangs the grid
+    // that follows it, and a static box loses hit-testing to a later sibling
+    // painted over it — the text column's padding was swallowing the clicks.
+    <div className={cn("relative z-10 mb-6", className)}>
+      <Link
+        href={href}
+        className={cn(
+          buttonVariants({
+            variant: "link",
+            size: "sm",
+            className: "w-fit px-0 text-muted-foreground",
+          })
+        )}
+      >
+        <ArrowLeftIcon data-icon="inline-start" />
+        {label}
+      </Link>
+    </div>
+  );
+}
+
 function CounterTeamLink({ target, team }: { target: Team; team: Team }) {
   return (
     <Link
@@ -360,73 +404,68 @@ export function DesignPreview({
 
       <main className="container grid gap-8 pt-6 pb-8">
         {target ? (
-          <>
-            <Link
+          <div>
+            <BackLink
+              // The counter view opens on a full-width strip, so there is
+              // nothing for the link to overhang — it keeps its own row there.
+              className={counter ? undefined : "lg:mb-0 lg:h-0"}
               href={counter ? `/design?target=${target.id}` : "/design"}
-              className={cn(
-                buttonVariants({
-                  variant: "link",
-                  size: "sm",
-                  className: "w-fit px-0 text-muted-foreground",
-                })
+              label={counter ? "กลับไปดูทีมแก้" : "กลับไปดูทีมเป้าหมาย"}
+            />
+            <div className="grid gap-8">
+              {counter ? (
+                <>
+                  <TargetReferenceStrip team={target} />
+                  <CounterStrategy target={target} team={counter} />
+                  {counters.length > 1 ? (
+                    <OtherCounterTeams
+                      target={target}
+                      teams={counters.filter((team) => team.id !== counter.id)}
+                    />
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <TargetSummary key={target.id} team={target} />
+                  <section
+                    aria-labelledby="saved-counters-heading"
+                    className="grid gap-4"
+                  >
+                    <Separator />
+                    <SectionHeading
+                      id="saved-counters-heading"
+                      title="ทีมแก้ที่บันทึกไว้"
+                      description="เลือกทีมแก้เพื่อดูลำดับสกิลและแผนการรบ"
+                      aside={
+                        <span className="text-sm font-medium text-foreground tabular-nums">
+                          {counters.length} ทีม
+                        </span>
+                      }
+                    />
+                    {counters.length ? (
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {counters.map((team) => (
+                          <CounterTeamLink
+                            key={team.id}
+                            target={target}
+                            team={team}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-dashed bg-card/50 p-8 text-center">
+                        <EmptyStateArt />
+                        <h3 className="font-semibold">ยังไม่มีทีมแก้</h3>
+                        <p className="mt-1.5 text-sm text-muted-foreground">
+                          กิลด์ยังไม่ได้บันทึกทีมแก้สำหรับเป้าหมายนี้
+                        </p>
+                      </div>
+                    )}
+                  </section>
+                </>
               )}
-            >
-              <ArrowLeftIcon data-icon="inline-start" />
-              {counter ? "กลับไปดูทีมแก้" : "กลับไปดูทีมเป้าหมาย"}
-            </Link>
-
-            {counter ? (
-              <>
-                <TargetReferenceStrip team={target} />
-                <CounterStrategy target={target} team={counter} />
-                {counters.length > 1 ? (
-                  <OtherCounterTeams
-                    target={target}
-                    teams={counters.filter((team) => team.id !== counter.id)}
-                  />
-                ) : null}
-              </>
-            ) : (
-              <>
-                <TargetSummary key={target.id} team={target} />
-                <section
-                  aria-labelledby="saved-counters-heading"
-                  className="grid gap-4"
-                >
-                  <Separator />
-                  <SectionHeading
-                    id="saved-counters-heading"
-                    title="ทีมแก้ที่บันทึกไว้"
-                    description="เลือกทีมแก้เพื่อดูลำดับสกิลและการจัดแถว"
-                    aside={
-                      <span className="text-sm font-medium text-foreground tabular-nums">
-                        {counters.length} ทีม
-                      </span>
-                    }
-                  />
-                  {counters.length ? (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {counters.map((team) => (
-                        <CounterTeamLink
-                          key={team.id}
-                          target={target}
-                          team={team}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed bg-card/50 p-8 text-center">
-                      <Mascot className="mb-4 w-28" />
-                      <h3 className="font-semibold">ยังไม่มีทีมแก้</h3>
-                      <p className="mt-1.5 text-sm text-muted-foreground">
-                        กิลด์ยังไม่ได้บันทึกทีมแก้สำหรับเป้าหมายนี้
-                      </p>
-                    </div>
-                  )}
-                </section>
-              </>
-            )}
-          </>
+            </div>
+          </div>
         ) : (
           <section
             ref={discoveryRef}
@@ -572,7 +611,7 @@ export function DesignPreview({
               </div>
             ) : (
               <div className="rounded-2xl border border-dashed bg-card/50 p-8 text-center">
-                <Mascot className="mb-4 w-28" />
+                <EmptyStateArt />
                 <h3 className="font-semibold">ไม่พบทีมเป้าหมาย</h3>
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   ลองลดตัวกรองหรือค้นหาด้วยชื่ออื่น

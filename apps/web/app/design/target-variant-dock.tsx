@@ -81,7 +81,9 @@ function VariantSelector({
               aria-label={`เลือกรูปแบบ${title}`}
               render={
                 <Button
-                  className="h-full w-full rounded-none p-0 hover:bg-card/70"
+                  // The card fills this button and owns the hover and focus
+                  // states, so the button contributes geometry only.
+                  className="group h-full w-full rounded-lg p-0 hover:bg-transparent focus-visible:border-transparent focus-visible:ring-0"
                   variant="ghost"
                 />
               }
@@ -92,10 +94,13 @@ function VariantSelector({
         </HoverCardTrigger>
         <HoverCardContent
           align={align}
-          className={cn("hidden flex-col gap-3 p-3 sm:flex", contentClassName)}
+          className={cn(
+            "hidden flex-col gap-2.5 p-3 sm:flex",
+            contentClassName
+          )}
           side="top"
         >
-          <p className="text-sm font-medium">{title}</p>
+          <p className="text-xs font-medium text-muted-foreground">{title}</p>
           {content(() => setHoverCardOpen(false))}
         </HoverCardContent>
       </HoverCard>
@@ -113,6 +118,7 @@ function VariantSelector({
 }
 
 type TargetVariantDockProps = {
+  className?: string;
   team: Team;
   variants: TargetVariants;
   selectedSpeed: TargetVariants["speeds"][number];
@@ -124,6 +130,7 @@ type TargetVariantDockProps = {
 };
 
 function TargetVariantDock({
+  className,
   team,
   variants,
   selectedSpeed,
@@ -134,7 +141,7 @@ function TargetVariantDock({
   onPetPackageChange,
 }: TargetVariantDockProps) {
   return (
-    <section aria-label="รูปแบบทีมเป้าหมาย">
+    <section aria-label="รูปแบบทีมเป้าหมาย" className={className}>
       <Lineup.Surface>
         <Lineup.Rows
           loading="eager"
@@ -229,12 +236,12 @@ function TargetVariantDock({
 
           <VariantSelector
             align="end"
-            title="การจัดแถว"
+            title="แผนการรบ"
             content={(close) => (
               <FieldSet className="gap-2">
-                <FieldLegend className="sr-only">การจัดแถว</FieldLegend>
+                <FieldLegend className="sr-only">แผนการรบ</FieldLegend>
                 <RadioGroup
-                  aria-label="เลือกการจัดแถว"
+                  aria-label="เลือกแผนการรบ"
                   className="grid grid-cols-2 gap-2"
                   value={selectedFormation}
                   onValueChange={(value) => {
@@ -247,7 +254,7 @@ function TargetVariantDock({
                   {formationOptions.map((formation) => {
                     const available = variants.formations.includes(formation);
                     return (
-                      <FieldLabel key={formation} className="aspect-square">
+                      <FieldLabel key={formation}>
                         <Field
                           data-disabled={!available || undefined}
                           className="h-full items-center justify-center text-center"
@@ -293,11 +300,19 @@ export function TargetSummary({ team }: { team: Team }) {
   );
 
   return (
+    /* The column is exactly Lineup.Surface's max width, so the lineup sits
+       flush with the container edge instead of floating inside a wider track. */
     <section
       aria-labelledby="target-summary-title"
-      className="mx-auto grid w-full max-w-lg items-start gap-4 lg:mx-0 lg:max-w-none lg:grid-cols-[minmax(0,1fr)_32rem] lg:gap-8"
+      className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_28rem] lg:gap-8"
     >
-      <div className="grid gap-2">
+      {/* Stacked, the title has to name the lineup before you meet it. It takes
+          the surface's own max-w-md and centres as a block, so the two rows
+          share both edges and every line here starts on the lineup's left edge
+          — centring the text instead would leave four separately centred
+          shapes with no spine. Side by side from lg, the two read at once.
+          `lg:pt-9` clears the back link overhanging this column. */}
+      <div className="mx-auto grid w-full max-w-md gap-2 lg:col-start-1 lg:row-start-1 lg:mx-0 lg:max-w-none lg:pt-9">
         <p className={cn("text-xs font-medium", teamTypeTextClass(team))}>
           ทีมเป้าหมาย
         </p>
@@ -320,6 +335,7 @@ export function TargetSummary({ team }: { team: Team }) {
         </p>
       </div>
       <TargetVariantDock
+        className="mx-auto w-full max-w-md lg:col-start-2 lg:row-start-1"
         team={team}
         variants={variants}
         selectedSpeed={selectedSpeed}
