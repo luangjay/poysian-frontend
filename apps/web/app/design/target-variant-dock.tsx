@@ -74,7 +74,7 @@ function SelectedMark() {
       aria-hidden="true"
       className="absolute top-1.5 left-1.5 z-10 grid size-4 place-items-center rounded-full bg-primary text-primary-foreground opacity-0 transition-opacity group-has-data-checked/field-label:opacity-100"
     >
-      <CheckIcon className="size-2.5" weight="bold" />
+      <CheckIcon weight="bold" />
     </span>
   );
 }
@@ -322,15 +322,22 @@ function TargetVariantDock({
                             <FieldContent className="items-center justify-center p-2.5">
                               <PetChoice pets={pets} />
                             </FieldContent>
+                            {/* Always a name, so every option reads the same
+                                kind of label — three names would not fit, and
+                                a bare count on some options and a name on
+                                others made the row incoherent. The `/N` is the
+                                notation the variant tile uses. */}
                             <span className={optionCaption}>
                               {pets[0]}
                               {pets.length > 1 ? (
                                 <span className="text-muted-foreground">
                                   {" "}
-                                  +{pets.length - 1}
+                                  /{pets.length}
                                 </span>
                               ) : null}
-                              <span className="sr-only">{pets.join(", ")}</span>
+                              <span className="sr-only">
+                                {pets.join(" หรือ ")}
+                              </span>
                             </span>
                             <RadioGroupItem
                               className="sr-only!"

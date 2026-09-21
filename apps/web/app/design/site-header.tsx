@@ -194,16 +194,15 @@ export function SiteHeader({
                 href="/design"
                 aria-label="Poysian"
                 className={cn(
-                  buttonVariants({ variant: "outline" }),
+                  // The variant carries the capsule, rather than the capsule
+                  // being painted out by overrides: `outline` sets its dark
+                  // fill through `dark:bg-input/30`, whose `:is(.dark *)`
+                  // selector outranks a plain `bg-transparent`, so overriding
+                  // the colours left the capsule standing in dark mode only.
+                  buttonVariants({ variant: detached ? "ghost" : "outline" }),
                   // Same box in both states; swapping layout classes on detach
                   // moved the mascot and the wordmark instead of fading.
-                  "h-10 min-w-0 shrink-0 gap-1 rounded-full pr-4 pl-1.5 transition-[background-color,border-color] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 motion-safe:duration-200 motion-reduce:transition-none",
-                  // The dark variants have to be spelled out: `outline` sets
-                  // its dark fill through `dark:bg-input/30`, whose `:is(.dark
-                  // *)` selector outranks a plain `bg-transparent`, so the
-                  // capsule survived detaching in dark mode only.
-                  detached &&
-                    "border-transparent bg-transparent hover:bg-transparent dark:border-transparent dark:bg-transparent dark:hover:bg-transparent"
+                  "h-10 min-w-0 shrink-0 gap-1 rounded-full pr-4 pl-1.5 transition-[background-color,border-color] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 motion-safe:duration-200 motion-reduce:transition-none"
                 )}
               >
                 <BrandMark priority className="h-12" />

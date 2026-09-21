@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { StarIcon } from "@phosphor-icons/react";
+import { Badge } from "@workspace/ui/components/badge";
 import {
   Dialog,
   DialogContent,
@@ -135,18 +136,22 @@ function HeroDetailTile({
                   src={roleIconSrc}
                   width={40}
                 />
-                <span className="rounded-full bg-foreground px-2 py-0.5 text-xs font-semibold text-background">
-                  LV.30 +5
-                </span>
+                <Badge variant="secondary">LV.30 +5</Badge>
                 <span
                   aria-label={isAwakened ? "ปลุกพลังแล้ว" : "ยังไม่ปลุกพลัง"}
+                  role="img"
                   className={cn(
-                    "flex -space-x-1",
+                    "flex",
                     isAwakened ? "text-universal" : "text-support"
                   )}
                 >
                   {Array.from({ length: 6 }, (_, index) => (
-                    <StarIcon key={index} aria-hidden="true" weight="fill" />
+                    <StarIcon
+                      key={index}
+                      aria-hidden="true"
+                      className={cn(index > 0 && "-ml-1")}
+                      weight="fill"
+                    />
                   ))}
                 </span>
               </div>
@@ -157,12 +162,12 @@ function HeroDetailTile({
           {gameReferenceStats.map((column, columnIndex) => (
             <dl
               key={columnIndex}
-              className="overflow-hidden rounded-xl border bg-muted/40"
+              className="divide-y overflow-hidden rounded-xl border bg-muted/40"
             >
               {column.map(([label, value]) => (
                 <div
                   key={label}
-                  className="flex items-center justify-between gap-4 border-b px-3 py-2 text-sm last:border-b-0"
+                  className="flex items-center justify-between gap-4 px-3 py-2 text-sm"
                 >
                   <dt className="whitespace-nowrap text-muted-foreground">
                     {label}
@@ -188,6 +193,7 @@ function HeroDetailTile({
                     <span
                       key={slot.item}
                       aria-label={`${group.label} ที่เลือกไว้`}
+                      role="img"
                       className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted shadow-sm"
                     >
                       <Image
@@ -217,13 +223,13 @@ function HeroDetailTile({
               </div>
             ))}
           </div>
-          <div className="min-h-0 overflow-y-auto p-4 text-sm leading-relaxed">
+          <div className="grid min-h-0 content-start gap-3 overflow-y-auto p-4 text-sm leading-relaxed">
             <p>{guidance.purpose}</p>
-            <p className="mt-3">
+            <p>
               <span className="font-medium">แนวทาง: </span>
               {guidance.note}
             </p>
-            <p className="mt-3">
+            <p>
               <span className="font-medium">แนะนำ: </span>
               {guidance.equipment}
             </p>

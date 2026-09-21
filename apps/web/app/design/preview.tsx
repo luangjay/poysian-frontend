@@ -26,6 +26,14 @@ import {
   useComboboxAnchor,
 } from "@workspace/ui/components/combobox";
 import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/empty";
+import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
@@ -54,25 +62,22 @@ import {
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
 import { TargetSummary } from "./target-variant-dock";
-import {
-  CounterTeamMiniCard,
-  TeamCard,
-  TeamTypeBadge,
-  teamTypeTextClass,
-} from "./team-card";
+import { CounterTeamMiniCard, TeamCard, TeamTypeBadge } from "./team-card";
 
 /** The game's own idle illustration — someone waiting it out by a campfire. */
 function EmptyStateArt() {
   return (
-    <Image
-      alt=""
-      aria-hidden="true"
-      className="mx-auto mb-4 size-28 select-none"
-      height={256}
-      sizes="112px"
-      src={`${gameUiAssetBaseUrl}/Atl_UI-PopUP_01_Sprite_100.png`}
-      width={256}
-    />
+    <EmptyMedia>
+      <Image
+        alt=""
+        aria-hidden="true"
+        className="size-28 select-none"
+        height={256}
+        sizes="112px"
+        src={`${gameUiAssetBaseUrl}/Atl_UI-PopUP_01_Sprite_100.png`}
+        width={256}
+      />
+    </EmptyMedia>
   );
 }
 
@@ -145,7 +150,7 @@ function TargetReferenceStrip({ team }: { team: Team }) {
       className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border bg-card p-4"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <p className={cn("text-xs font-medium", teamTypeTextClass(team))}>
+        <p className="text-xs font-medium text-muted-foreground">
           กำลังแก้ทีมนี้
         </p>
         <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -411,74 +416,83 @@ export function DesignPreview({
 
   return (
     <div className="min-h-svh bg-muted/40 text-foreground [--design-header-block-size:calc(var(--design-header-content-height)+1.5rem)] [--design-header-content-height:4rem]">
+      {/* The header puts four controls between the page and its content,
+          and the search one only exists on the discovery view — so tabbing to
+          a target means tabbing past chrome that changes shape per route. */}
+      <a
+        href="#content"
+        className="fixed top-4 left-4 z-50 -translate-y-20 rounded-full bg-background px-4 py-2 text-sm font-medium ring-3 ring-ring/50 transition-transform focus-visible:translate-y-0 motion-reduce:transition-none"
+      >
+        ข้ามไปที่เนื้อหา
+      </a>
       <SiteHeader
         guildName={GUILD_NAME}
         onJumpToSearch={target ? undefined : scrollToDiscovery}
         shareTitle={counter?.title ?? target?.title ?? "Poysian"}
       />
 
-      <main className="container grid gap-8 pt-6 pb-8">
+      <main id="content" className="container grid gap-8 pt-6 pb-8">
         {target ? (
-          <div>
-            <div className="grid gap-8">
-              {counter ? (
-                <>
-                  {/* The counter view opens on a full-width strip, so the link
+          <div className="grid gap-8">
+            {counter ? (
+              <>
+                {/* The counter view opens on a full-width strip, so the link
                       takes a row of its own here. */}
-                  <BackLink href={`/design?target=${target.id}`} label="กลับ" />
-                  <TargetReferenceStrip team={target} />
-                  <CounterStrategy target={target} team={counter} />
-                  {counters.length > 1 ? (
-                    <OtherCounterTeams
-                      target={target}
-                      teams={counters.filter((team) => team.id !== counter.id)}
-                    />
-                  ) : null}
-                </>
-              ) : (
-                <>
-                  {/* On the target view the link is a cell of the hero
+                <BackLink href={`/design?target=${target.id}`} label="กลับ" />
+                <TargetReferenceStrip team={target} />
+                <CounterStrategy target={target} team={counter} />
+                {counters.length > 1 ? (
+                  <OtherCounterTeams
+                    target={target}
+                    teams={counters.filter((team) => team.id !== counter.id)}
+                  />
+                ) : null}
+              </>
+            ) : (
+              <>
+                {/* On the target view the link is a cell of the hero
                       grid, so the top of the page still belongs to the lineup
                       without anything overhanging to get it there. */}
-                  <TargetSummary
-                    key={target.id}
-                    backLink={<BackLink href="/design" label="กลับ" />}
-                    team={target}
+                <TargetSummary
+                  key={target.id}
+                  backLink={<BackLink href="/design" label="กลับ" />}
+                  team={target}
+                />
+                <section
+                  aria-labelledby="saved-counters-heading"
+                  className="grid gap-4"
+                >
+                  <Separator />
+                  <SectionHeading
+                    id="saved-counters-heading"
+                    title="ทีมแก้ที่บันทึกไว้"
+                    description="เลือกทีมแก้เพื่อดูลำดับสกิลและแผนการรบ"
+                    aside={<TeamCount value={counters.length} />}
                   />
-                  <section
-                    aria-labelledby="saved-counters-heading"
-                    className="grid gap-4"
-                  >
-                    <Separator />
-                    <SectionHeading
-                      id="saved-counters-heading"
-                      title="ทีมแก้ที่บันทึกไว้"
-                      description="เลือกทีมแก้เพื่อดูลำดับสกิลและแผนการรบ"
-                      aside={<TeamCount value={counters.length} />}
-                    />
-                    {counters.length ? (
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {counters.map((team) => (
-                          <CounterTeamLink
-                            key={team.id}
-                            target={target}
-                            team={team}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="rounded-2xl border border-dashed bg-card/50 p-8 text-center">
+                  {counters.length ? (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {counters.map((team) => (
+                        <CounterTeamLink
+                          key={team.id}
+                          target={target}
+                          team={team}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <Empty className="rounded-2xl border bg-card/50">
+                      <EmptyHeader>
                         <EmptyStateArt />
-                        <h3 className="font-semibold">ยังไม่มีทีมแก้</h3>
-                        <p className="mt-1.5 text-sm text-muted-foreground">
+                        <EmptyTitle>ยังไม่มีทีมแก้</EmptyTitle>
+                        <EmptyDescription>
                           กิลด์ยังไม่ได้บันทึกทีมแก้สำหรับเป้าหมายนี้
-                        </p>
-                      </div>
-                    )}
-                  </section>
-                </>
-              )}
-            </div>
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  )}
+                </section>
+              </>
+            )}
           </div>
         ) : (
           <section
@@ -617,20 +631,20 @@ export function DesignPreview({
                 ))}
               </div>
             ) : (
-              <div className="rounded-2xl border border-dashed bg-card/50 p-8 text-center">
-                <EmptyStateArt />
-                <h3 className="font-semibold">ไม่พบทีมเป้าหมาย</h3>
-                <p className="mt-1.5 text-sm text-muted-foreground">
-                  ลองลดตัวกรองหรือค้นหาด้วยชื่ออื่น
-                </p>
-                <Button
-                  className="mt-5"
-                  variant="outline"
-                  onClick={clearFilters}
-                >
-                  ล้างตัวกรอง
-                </Button>
-              </div>
+              <Empty className="rounded-2xl border bg-card/50">
+                <EmptyHeader>
+                  <EmptyStateArt />
+                  <EmptyTitle>ไม่พบทีมเป้าหมาย</EmptyTitle>
+                  <EmptyDescription>
+                    ลองลดตัวกรองหรือค้นหาด้วยชื่ออื่น
+                  </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <Button variant="outline" onClick={clearFilters}>
+                    ล้างตัวกรอง
+                  </Button>
+                </EmptyContent>
+              </Empty>
             )}
           </section>
         )}

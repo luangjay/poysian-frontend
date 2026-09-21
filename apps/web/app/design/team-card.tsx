@@ -12,22 +12,12 @@ import { cn } from "@workspace/ui/lib/utils";
 import { type TargetTeamType, type Team } from "./_data";
 import { HeroPortrait, Lineup } from "./lineup";
 
-const teamTypeColor: Record<TargetTeamType, { badge: string; text: string }> = {
-  defensive: {
-    badge: "bg-defensive/10 text-defensive",
-    text: "text-defensive",
-  },
-  offensive: {
-    badge: "bg-offensive/10 text-offensive",
-    text: "text-offensive",
-  },
-  magic: { badge: "bg-magic/10 text-magic", text: "text-magic" },
-  other: { badge: "bg-universal/10 text-universal", text: "text-universal" },
+const teamTypeBadgeClass: Record<TargetTeamType, string> = {
+  defensive: "bg-defensive/10 text-defensive",
+  offensive: "bg-offensive/10 text-offensive",
+  magic: "bg-magic/10 text-magic",
+  other: "bg-universal/10 text-universal",
 };
-
-export function teamTypeTextClass(team: Pick<Team, "targetType">) {
-  return team.targetType ? teamTypeColor[team.targetType].text : "text-primary";
-}
 
 export function TeamTypeBadge({
   className,
@@ -49,7 +39,7 @@ export function TeamTypeBadge({
     <Badge
       className={cn(
         "rounded-full",
-        teamTypeColor[team.targetType].badge,
+        teamTypeBadgeClass[team.targetType],
         className
       )}
       variant="default"
@@ -89,6 +79,10 @@ export function TeamCard({
   const sharedCount = sharedHeroNames
     ? team.heroes.filter((hero) => sharedHeroNames.includes(hero.name)).length
     : 0;
+  const [leadTag] = team.tags ?? [];
+  // Clamped: with no tags at all the subtraction goes to -1, which is truthy
+  // and printed itself as "+-1".
+  const extraTagCount = Math.max((team.tags?.length ?? 0) - 1, 0);
 
   return (
     <Card
@@ -97,27 +91,22 @@ export function TeamCard({
       <CardHeader>
         <div className="flex min-w-0 gap-1.5">
           <TeamTypeBadge team={team} />
-          {team.tags?.length ? (
-            <>
-              {team.tags.slice(0, 1).map((tag) => (
-                <Badge
-                  key={tag}
-                  className="max-w-24 min-w-0 shrink truncate rounded-md"
-                  title={tag}
-                  variant="outline"
-                >
-                  {tag}
-                </Badge>
-              ))}
-              {team.tags.length > 1 ? (
-                <Badge
-                  className="size-5 justify-center rounded-md p-0 text-[11px] tabular-nums"
-                  variant="outline"
-                >
-                  +{team.tags.length - 1}
-                </Badge>
-              ) : null}
-            </>
+          {leadTag ? (
+            <Badge
+              className="max-w-24 min-w-0 shrink truncate rounded-md"
+              title={leadTag}
+              variant="outline"
+            >
+              {leadTag}
+            </Badge>
+          ) : null}
+          {extraTagCount ? (
+            <Badge
+              className="size-5 justify-center rounded-md p-0 text-[11px] tabular-nums"
+              variant="outline"
+            >
+              +{extraTagCount}
+            </Badge>
           ) : null}
         </div>
         <CardAction>
@@ -142,7 +131,7 @@ export function TeamCard({
           />
         </Lineup.Surface>
       </CardContent>
-      <CardFooter className="mt-auto items-center justify-between gap-2">
+      <CardFooter className="mt-auto justify-between gap-2">
         {sharedCount ? (
           <Badge
             className="gap-1.5 rounded-md text-muted-foreground"
@@ -154,10 +143,8 @@ export function TeamCard({
             />
             ใช้ตัวร่วมกัน {sharedCount}
           </Badge>
-        ) : (
-          <span />
-        )}
-        <span className="flex items-center gap-1 text-xs font-medium text-foreground">
+        ) : null}
+        <span className="ml-auto flex items-center gap-1 text-xs font-medium text-foreground">
           {counter ? "ดูกลยุทธ์" : "ดูทีมแก้"}
           <ArrowUpRightIcon aria-hidden="true" />
         </span>
@@ -175,8 +162,9 @@ export function CounterTeamMiniCard({ team }: { team: Team }) {
       </CardHeader>
       <CardContent>
         <div
-          className="flex items-start gap-1"
           aria-label={`ตัวละคร: ${team.title}`}
+          className="flex items-start gap-1"
+          role="group"
         >
           {team.heroes.slice(0, 3).map((hero) => (
             <HeroPortrait key={hero.name} hero={hero} size="sm" />

@@ -189,6 +189,7 @@ function LineupRows({
       // refuses to overlap the speed badge and drops the rows a row down.
       className="col-start-1 col-end-3 row-start-1 mx-auto grid min-h-0 w-full max-w-sm grid-rows-2 gap-4 self-center [--lineup-hero-label-offset:calc((1rem+0.125rem)/2)] @sm:col-end-2 @sm:row-end-3"
       aria-label="การจัดทีม"
+      role="group"
     >
       {(["front", "back"] as const).map((row) => {
         const heroes = team.heroes.filter((hero) => hero.row === row);
@@ -302,7 +303,7 @@ export function FormationPreview({
     <Image
       alt=""
       aria-hidden="true"
-      className={cn("h-auto shrink-0 select-none", compact ? "w-10" : "w-28")}
+      className={cn("h-auto shrink-0 select-none", compact ? "w-12" : "w-28")}
       height={compact ? 66 : 99}
       sizes={compact ? "40px" : "112px"}
       src={formationSpriteSrc(formation, compact)}
@@ -398,34 +399,31 @@ export function PetChoice({ pets }: { pets: string[] }) {
   }
 
   return (
-    <div className="grid w-full max-w-28 shrink-0 place-items-center text-center">
-      {/* A full package is five: the lead pet over two rows of two. The gaps
-          are picked so that case measures exactly 10.5rem tall —
-          72 + 12 + (40 + 4 + 40) — which is what the picker's cells size to. */}
-      <div className="flex flex-col items-center gap-3">
-        <PetPortrait pet={primaryPet} size="primary" />
-        {companionPets.length ? (
-          <div
-            className={cn(
-              "grid grid-cols-2 justify-items-center gap-1",
-              companionPets.length === 1 && "grid-cols-1"
-            )}
-          >
-            {companionPets.map((pet, index) => (
-              <div
-                key={pet}
-                className={cn(
-                  companionPets.length % 2 === 1 &&
-                    index === companionPets.length - 1 &&
-                    "col-span-2"
-                )}
-              >
-                <PetPortrait pet={pet} />
-              </div>
-            ))}
-          </div>
-        ) : null}
-      </div>
+    // A full package is five: the lead pet over two rows of two. The gaps are
+    // picked so that case measures exactly 10.5rem tall — 72 + 12 + (40 + 4 +
+    // 40) — which is what the picker's cells size to.
+    <div className="mx-auto grid w-full max-w-28 justify-items-center gap-3 text-center">
+      <PetPortrait pet={primaryPet} size="primary" />
+      {companionPets.length ? (
+        <div
+          className={cn(
+            "grid grid-cols-2 justify-items-center gap-1",
+            companionPets.length === 1 && "grid-cols-1"
+          )}
+        >
+          {companionPets.map((pet, index) => (
+            <PetPortrait
+              key={pet}
+              className={cn(
+                companionPets.length % 2 === 1 &&
+                  index === companionPets.length - 1 &&
+                  "col-span-2"
+              )}
+              pet={pet}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -435,23 +433,26 @@ export function PetChoice({ pets }: { pets: string[] }) {
  * caption reads. Laying all of them out shrank every portrait to fit the
  * smallest slot; one large one stays recognisable at any package size.
  */
+/**
+ * A team fields one pet, and the rest of the package are pets it could take
+ * instead — so the marker counts options rather than pets on the field. `/2`
+ * over `+1`: a plus reads as "and one more", where this means "of two". The
+ * numerator is dropped because it is always one, and a digit that never
+ * changes is not worth the width in a 20px badge.
+ */
 function PetSummary({ pets }: { pets: string[] }) {
-  const [mainPet, ...companions] = pets;
+  const [pet] = pets;
 
-  if (!mainPet) {
+  if (!pet) {
     return null;
   }
 
   return (
     <span aria-hidden="true" className="relative">
-      <PetPortrait className="w-12" pet={mainPet} />
-      {companions.length ? (
-        // Shaped like the card's own tag overflow: a square of the badge's
-        // base height, padding dropped so the digits centre themselves. The
-        // radius is left alone — `rounded-4xl` already clamps to a circle at
-        // this size, and a corner counter is not a tag.
-        <Badge className="absolute -right-1.5 -bottom-1.5 size-5 rounded-md p-0 text-[11px] tabular-nums">
-          +{companions.length}
+      <PetPortrait className="w-12" pet={pet} />
+      {pets.length > 1 ? (
+        <Badge className="absolute -right-1.5 -bottom-1.5 rounded-md px-1 text-[11px] tabular-nums">
+          /{pets.length}
         </Badge>
       ) : null}
     </span>
@@ -581,7 +582,7 @@ function LineupPets({ pets }: { pets: string[] }) {
   return (
     <VariantFace
       caption="สัตว์เลี้ยง"
-      value={pets.join(" · ")}
+      value={pets.join(" หรือ ")}
       visual={<PetSummary pets={pets} />}
     />
   );
