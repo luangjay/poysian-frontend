@@ -14,9 +14,6 @@ import { Button, buttonVariants } from "@workspace/ui/components/button";
 import { toast } from "@workspace/ui/components/toast";
 import { cn } from "@workspace/ui/lib/utils";
 
-/** The page's own field colour, so the resting header leaves no seam. */
-const pageField = "color-mix(in oklab, var(--muted) 40%, var(--background))";
-
 /**
  * Glass recipe from the PP keypad: a translucent fill lifted by one soft
  * downward shadow — no stroke. Figma states `0 4px 16px rgba(0,0,0,0.05)` over
@@ -98,9 +95,20 @@ export function SiteHeader({
       return;
     }
 
-    // Growing the root upward by one bar height keeps the sentinel counted as
-    // visible until the resting bar has fully scrolled off, so the island takes
-    // over at that point rather than on the first pixel.
+    // The island has to arrive as the first content reaches the bar, not once
+    // the bar has scrolled away. Waiting for the bar left a window where the
+    // resting backdrop — the page's own colour — was clipping artwork with no
+    // surface to explain the cut.
+    //
+    // That moment is the gap between the bar and the content below it, which
+    // is the top padding of whatever follows the header in flow. Growing the
+    // root by exactly that keeps the sentinel counted as visible until the
+    // content is about to slide under.
+    const content = header.nextElementSibling;
+    const gap = content
+      ? parseFloat(getComputedStyle(content).paddingTop)
+      : header.offsetHeight;
+
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
@@ -109,7 +117,7 @@ export function SiteHeader({
           setDetached(!entry.isIntersecting);
         }
       },
-      { rootMargin: `${header.offsetHeight}px 0px 0px 0px` }
+      { rootMargin: `${gap}px 0px 0px 0px` }
     );
 
     observer.observe(sentinel);
@@ -155,18 +163,6 @@ export function SiteHeader({
         ref={headerRef}
         className="sticky top-0 z-40 h-(--design-header-content-height)"
       >
-        {/* At rest this is exactly the page field, so the header leaves no
-            seam while content still scrolls behind it. Once detached it clears
-            out entirely — the island is the surface, and anything behind the
-            island has to stay visible for the glass to read as glass. */}
-        <div
-          aria-hidden="true"
-          style={{ background: pageField }}
-          className={cn(
-            "absolute inset-x-0 top-0 h-(--design-header-content-height) transition-opacity motion-safe:duration-200 motion-reduce:transition-none",
-            detached ? "opacity-0" : "opacity-100"
-          )}
-        />
         <div
           className={cn(
             "relative container transition-[padding-top] motion-safe:duration-200 motion-reduce:transition-none",
@@ -181,7 +177,7 @@ export function SiteHeader({
               // `none`, or a radius that appears with the background, snaps.
               "flex h-(--design-header-content-height) items-center justify-between gap-3 rounded-full transition-[background-color,padding,box-shadow,backdrop-filter] motion-safe:duration-200 motion-reduce:transition-none",
               detached
-                ? "border bg-background/20 px-3 backdrop-blur-xl backdrop-saturate-150"
+                ? "border bg-background/20 px-3 backdrop-blur-sm backdrop-saturate-150"
                 : "bg-transparent px-0 backdrop-blur-none backdrop-saturate-100"
             )}
           >

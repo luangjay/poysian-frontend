@@ -1,4 +1,7 @@
-import { ArrowUpRightIcon, SwordIcon } from "@phosphor-icons/react";
+import { type ReactNode } from "react";
+import Link from "next/link";
+import { ArrowUpRightIcon } from "@phosphor-icons/react";
+import { cva } from "class-variance-authority";
 import { Badge } from "@workspace/ui/components/badge";
 import {
   Card,
@@ -8,16 +11,31 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "@workspace/ui/components/item";
 import { cn } from "@workspace/ui/lib/utils";
-import { type TargetTeamType, type Team } from "./_data";
-import { HeroPortrait, Lineup } from "./lineup";
+import { teamVariants, type Team } from "./_data";
+import { HeroPortrait, Lineup, PetSummary } from "./lineup";
 
-const teamTypeBadgeClass: Record<TargetTeamType, string> = {
-  defensive: "bg-defensive/10 text-defensive",
-  offensive: "bg-offensive/10 text-offensive",
-  magic: "bg-magic/10 text-magic",
-  other: "bg-universal/10 text-universal",
-};
+/**
+ * A counter team has no target type, so it keeps the plain secondary badge;
+ * a target is tinted by which kind of team it is.
+ */
+const teamTypeBadgeVariants = cva("rounded-full", {
+  variants: {
+    targetType: {
+      defensive: "bg-defensive/10 text-defensive",
+      offensive: "bg-offensive/10 text-offensive",
+      magic: "bg-magic/10 text-magic",
+      other: "bg-universal/10 text-universal",
+    },
+  },
+});
 
 export function TeamTypeBadge({
   className,
@@ -27,22 +45,12 @@ export function TeamTypeBadge({
   className?: string;
   team: Pick<Team, "targetType" | "type">;
 }) {
-  if (!team.targetType) {
-    return (
-      <Badge className={cn("rounded-full", className)} variant="secondary">
-        {team.type}
-      </Badge>
-    );
-  }
-
   return (
     <Badge
       className={cn(
-        "rounded-full",
-        teamTypeBadgeClass[team.targetType],
-        className
+        teamTypeBadgeVariants({ targetType: team.targetType, className })
       )}
-      variant="default"
+      variant={team.targetType ? "default" : "secondary"}
     >
       {team.type}
     </Badge>
@@ -65,58 +73,157 @@ export const selectableCard = cn(
   "motion-safe:group-hover:-translate-y-1 motion-safe:group-focus-visible:-translate-y-1"
 );
 
+/** The lead tag, plus a count for the rest — the card and the row both show
+ *  tags in a strip too narrow to hold more than one. */
+function TeamTagRow({
+  children,
+  team,
+}: {
+  children?: ReactNode;
+  team: Pick<Team, "tags" | "targetType" | "type">;
+}) {
+  const [leadTag] = team.tags ?? [];
+  const extraTagCount = Math.max((team.tags?.length ?? 0) - 1, 0);
+
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+      <TeamTypeBadge team={team} />
+      {leadTag ? (
+        <Badge
+          className="max-w-24 min-w-0 shrink truncate rounded-md"
+          title={leadTag}
+          variant="outline"
+        >
+          {leadTag}
+        </Badge>
+      ) : null}
+      {extraTagCount ? (
+        <Badge
+          className="size-5 justify-center rounded-md p-0 text-[11px] tabular-nums"
+          variant="outline"
+        >
+          +{extraTagCount}
+        </Badge>
+      ) : null}
+      {children}
+    </div>
+  );
+}
+
+/**
+ * Column widths live here so the header and every row cannot drift apart —
+ * the header is only worth having if it lines up with what it names.
+ */
+/**
+ * A counter as one row of a table, after the game's own "popular teams" list:
+ * rank, formation, heroes, pet, name — and the way out kept behind a rule so
+ * it reads as the control and not as the last column.
+ *
+ * Only the name survives from the card. The condition and the tags were what
+ * made the row a card with a list's job.
+ */
+export function CounterTeamRow({
+  rank,
+  target,
+  team,
+}: {
+  rank: number;
+  target: Team;
+  team: Team;
+}) {
+  return (
+    <Item
+      className="gap-4 bg-card"
+      render={<Link href={`/design?target=${target.id}&counter=${team.id}`} />}
+      variant="outline"
+    >
+      {/* Everything that can wrap lives in here, so the arrow outside it
+          never joins a wrapped line — it stays level with the whole card
+          instead of centring on whichever line it landed on. */}
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-4">
+        {/* Rank, name and description are one thing: which team this is, and
+          where the guild put it.
+
+          A max, not a width: it grows with the row and stops at a measure the
+          description is still readable at. The fixed w-48/w-64 it replaces was
+          me stopping the text from eating the row — which pinned it to an odd
+          width on wide screens for no reason a reader could see. */}
+        <ItemContent className="w-full flex-none flex-row items-start gap-3 @xl:w-auto @xl:max-w-md @xl:flex-1">
+          <span className="shrink-0 text-sm leading-snug font-semibold text-muted-foreground tabular-nums">
+            {rank}
+          </span>
+          <div className="grid min-w-0 gap-1">
+            <ItemTitle>{team.title}</ItemTitle>
+            <ItemDescription>{team.condition}</ItemDescription>
+          </div>
+        </ItemContent>
+
+        {/* Plain elements, not ItemMedia. ItemMedia top-aligns itself the moment
+          the row has a description — `group-has-data-[slot=item-description]`
+          — and that rule outranks a plain `self-center`, so the pet sat at the
+          top of the row no matter what was added here. These are columns, not
+          an icon beside text, so the component's opinion does not apply. */}
+        <div className="flex items-center gap-4 @xl:ml-auto">
+          {/* No width, so `px` is a real knob: it widens the group rather than
+            squeezing `shrink-0` portraits, and it is how far the rail fades. */}
+          <div className="relative flex shrink-0 items-center gap-2 px-3 @4xl:gap-3 @4xl:px-6">
+            {/* The lineup's rail, carried into the row: it runs behind the
+              portraits and fades at both ends, so the three read as one team
+              rather than three loose tiles. Centred on the portraits rather
+              than the tiles — the offset backs out the name label below. */}
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-0 top-[calc(50%-0.5625rem)] h-1.5 rounded-full bg-linear-to-r from-transparent via-muted-foreground/20 to-transparent"
+            />
+            {team.heroes.map((hero) => (
+              <HeroPortrait
+                key={hero.name}
+                className="w-14 @4xl:w-18"
+                hero={hero}
+                rowBadge
+              />
+            ))}
+          </div>
+          <PetSummary
+            className="w-10 @4xl:w-12"
+            pets={teamVariants(team).petPackages[0] ?? [team.pet]}
+          />
+        </div>
+      </div>
+      {/* Item centres its children, so the arrow sits at the right, level with
+          the card — no positioning needed. */}
+      <ItemActions>
+        <ArrowUpRightIcon
+          aria-hidden="true"
+          className="text-muted-foreground"
+        />
+      </ItemActions>
+    </Item>
+  );
+}
+
 export function TeamCard({
   team,
-  counter = false,
   eagerImages = false,
   sharedHeroNames,
 }: {
   team: Team;
-  counter?: boolean;
   eagerImages?: boolean;
   sharedHeroNames?: string[];
 }) {
   const sharedCount = sharedHeroNames
     ? team.heroes.filter((hero) => sharedHeroNames.includes(hero.name)).length
     : 0;
-  const [leadTag] = team.tags ?? [];
-  // Clamped: with no tags at all the subtraction goes to -1, which is truthy
-  // and printed itself as "+-1".
-  const extraTagCount = Math.max((team.tags?.length ?? 0) - 1, 0);
-
   return (
     <Card
       className={cn("h-full [--card-spacing:--spacing(3)]", selectableCard)}
     >
       <CardHeader>
-        <div className="flex min-w-0 gap-1.5">
-          <TeamTypeBadge team={team} />
-          {leadTag ? (
-            <Badge
-              className="max-w-24 min-w-0 shrink truncate rounded-md"
-              title={leadTag}
-              variant="outline"
-            >
-              {leadTag}
-            </Badge>
-          ) : null}
-          {extraTagCount ? (
-            <Badge
-              className="size-5 justify-center rounded-md p-0 text-[11px] tabular-nums"
-              variant="outline"
-            >
-              +{extraTagCount}
-            </Badge>
-          ) : null}
-        </div>
+        <TeamTagRow team={team} />
         <CardAction>
-          {counter ? (
-            <SwordIcon aria-hidden="true" className="text-primary" />
-          ) : (
-            <span className="text-xs text-muted-foreground">
-              {team.counters ? `${team.counters} ทีมแก้` : "รอทีมแก้"}
-            </span>
-          )}
+          <span className="text-xs text-muted-foreground">
+            {team.counters ? `${team.counters} ทีมแก้` : "รอทีมแก้"}
+          </span>
         </CardAction>
         <CardTitle className="truncate text-lg font-semibold">
           {team.title}
@@ -145,7 +252,7 @@ export function TeamCard({
           </Badge>
         ) : null}
         <span className="ml-auto flex items-center gap-1 text-xs font-medium text-foreground">
-          {counter ? "ดูกลยุทธ์" : "ดูทีมแก้"}
+          ดูทีมแก้
           <ArrowUpRightIcon aria-hidden="true" />
         </span>
       </CardFooter>

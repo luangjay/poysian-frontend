@@ -38,6 +38,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@workspace/ui/components/input-group";
+import { ItemGroup } from "@workspace/ui/components/item";
 import { Separator } from "@workspace/ui/components/separator";
 import { Toggle } from "@workspace/ui/components/toggle";
 import {
@@ -62,7 +63,12 @@ import {
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
 import { TargetSummary } from "./target-variant-dock";
-import { CounterTeamMiniCard, TeamCard, TeamTypeBadge } from "./team-card";
+import {
+  CounterTeamMiniCard,
+  CounterTeamRow,
+  TeamCard,
+  TeamTypeBadge,
+} from "./team-card";
 
 /** The game's own idle illustration — someone waiting it out by a campfire. */
 function EmptyStateArt() {
@@ -319,21 +325,6 @@ function BackLink({
   );
 }
 
-function CounterTeamLink({ target, team }: { target: Team; team: Team }) {
-  return (
-    <Link
-      href={`/design?target=${target.id}&counter=${team.id}`}
-      className="group block rounded-xl outline-none"
-    >
-      <TeamCard
-        counter
-        sharedHeroNames={target.heroes.map((hero) => hero.name)}
-        team={team}
-      />
-    </Link>
-  );
-}
-
 function OtherCounterTeams({ target, teams }: { target: Team; teams: Team[] }) {
   return (
     <section aria-labelledby="other-counters-heading" className="grid gap-4">
@@ -462,23 +453,27 @@ export function DesignPreview({
                   aria-labelledby="saved-counters-heading"
                   className="grid gap-4"
                 >
-                  <Separator />
                   <SectionHeading
                     id="saved-counters-heading"
                     title="ทีมแก้ที่บันทึกไว้"
                     description="เลือกทีมแก้เพื่อดูลำดับสกิลและแผนการรบ"
                     aside={<TeamCount value={counters.length} />}
                   />
+                  {/* The rows size themselves against this list, not the
+                      window — the section is what actually constrains them,
+                      and it is narrower than the viewport by the page's own
+                      padding. */}
                   {counters.length ? (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {counters.map((team) => (
-                        <CounterTeamLink
+                    <ItemGroup className="@container">
+                      {counters.map((team, index) => (
+                        <CounterTeamRow
                           key={team.id}
+                          rank={index + 1}
                           target={target}
                           team={team}
                         />
                       ))}
-                    </div>
+                    </ItemGroup>
                   ) : (
                     <Empty className="rounded-2xl border bg-card/50">
                       <EmptyHeader>

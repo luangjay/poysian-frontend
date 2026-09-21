@@ -36,12 +36,15 @@ export function HeroPortrait({
   hero,
   className,
   loading = "lazy",
+  rowBadge = false,
   shared = false,
   size = "md",
 }: {
   hero: Hero;
   className?: string;
   loading?: "eager" | "lazy";
+  /** Front or back, marked on the portrait — for lists with no row rails. */
+  rowBadge?: boolean;
   shared?: boolean;
   size?: "sm" | "md";
 }) {
@@ -109,6 +112,24 @@ export function HeroPortrait({
         {shared ? (
           <span className="absolute top-1 left-1 z-30 grid size-2.5 place-items-center rounded-full bg-primary ring-2 ring-muted">
             <span className="sr-only">ตัวร่วมกับทีมเป้าหมาย</span>
+          </span>
+        ) : null}
+        {rowBadge ? (
+          <span
+            className={cn(
+              // Filled rather than tinted: a 9px letter at 70% on a card
+              // background was thin to read. White, not a theme token — the
+              // disc is red or blue in both themes, so a foreground that
+              // followed the theme would invert against a background that
+              // does not.
+              "absolute right-0.5 bottom-1 z-30 grid size-3 place-items-center rounded-full border border-white text-[8px] leading-none font-bold text-white shadow-sm",
+              hero.row === "back" ? "bg-red" : "bg-blue"
+            )}
+          >
+            <span className="sr-only">
+              {hero.row === "back" ? "แถวหลัง" : "แถวหน้า"}
+            </span>
+            <span aria-hidden="true">{hero.row === "back" ? "B" : "F"}</span>
           </span>
         ) : null}
       </div>
@@ -212,7 +233,7 @@ function LineupRows({
             >
               <span
                 className={cn(
-                  "absolute top-1/2 right-0 grid size-5 -translate-y-1/2 place-items-center rounded-full border-2 bg-card text-xs font-bold shadow-sm",
+                  "absolute top-1/2 right-0 grid size-5 -translate-y-1/2 place-items-center rounded-full border-2 bg-card text-xs leading-none font-bold shadow-sm",
                   tone === "red"
                     ? "border-red/30 text-red/60"
                     : "border-blue/30 text-blue/60"
@@ -440,7 +461,13 @@ export function PetChoice({ pets }: { pets: string[] }) {
  * numerator is dropped because it is always one, and a digit that never
  * changes is not worth the width in a 20px badge.
  */
-function PetSummary({ pets }: { pets: string[] }) {
+export function PetSummary({
+  className,
+  pets,
+}: {
+  className?: string;
+  pets: string[];
+}) {
   const [pet] = pets;
 
   if (!pet) {
@@ -449,7 +476,7 @@ function PetSummary({ pets }: { pets: string[] }) {
 
   return (
     <span aria-hidden="true" className="relative">
-      <PetPortrait className="w-12" pet={pet} />
+      <PetPortrait className={cn("w-12", className)} pet={pet} />
       {pets.length > 1 ? (
         <Badge className="absolute -right-1.5 -bottom-1.5 rounded-md px-1 text-[11px] tabular-nums">
           /{pets.length}
