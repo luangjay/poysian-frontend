@@ -213,7 +213,10 @@ export function SiteHeader({
                 >
                   /
                 </span>
-                <span className="truncate text-sm leading-5 tracking-tight">
+                <span
+                  className="truncate text-sm leading-5 tracking-tight"
+                  title={guildName}
+                >
                   {guildName}
                 </span>
               </p>

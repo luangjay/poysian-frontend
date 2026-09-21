@@ -163,6 +163,7 @@ function TargetReferenceStrip({ team }: { team: Team }) {
           <p
             id="target-reference-title"
             className="truncate font-semibold tracking-tight"
+            title={team.title}
           >
             {team.title}
           </p>
@@ -207,7 +208,10 @@ function PlaySequence({
               <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                 {step.order}
               </span>
-              <span className="min-w-0 flex-1 truncate text-sm font-medium">
+              <span
+                className="min-w-0 flex-1 truncate text-sm font-medium"
+                title={step.hero}
+              >
                 {step.hero}
               </span>
               <span className="grid size-6 shrink-0 place-items-center rounded-full border bg-card text-xs font-semibold text-muted-foreground">

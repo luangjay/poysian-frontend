@@ -131,6 +131,13 @@ export function CounterTeamRow({
   target: Team;
   team: Team;
 }) {
+  const pets = teamVariants(team).petPackages[0] ?? [team.pet];
+  // Front before back, which is the order the game's own team tables use.
+  const heroes = [
+    ...team.heroes.filter((hero) => hero.row === "front"),
+    ...team.heroes.filter((hero) => hero.row === "back"),
+  ];
+
   return (
     <Item
       className="bg-card"
@@ -153,8 +160,10 @@ export function CounterTeamRow({
             {rank}
           </span>
           <div className="grid min-w-0 gap-1">
-            <ItemTitle>{team.title}</ItemTitle>
-            <ItemDescription>{team.condition}</ItemDescription>
+            <ItemTitle title={team.title}>{team.title}</ItemTitle>
+            <ItemDescription title={team.condition}>
+              {team.condition}
+            </ItemDescription>
           </div>
         </ItemContent>
 
@@ -175,14 +184,15 @@ export function CounterTeamRow({
               aria-hidden="true"
               className="absolute inset-x-0 top-[calc(50%-0.5625rem)] h-1.5 rounded-full bg-linear-to-r from-transparent via-muted-foreground/20 to-transparent"
             />
-            {team.heroes.map((hero) => (
+            {heroes.map((hero) => (
               <HeroPortrait key={hero.name} hero={hero} rowBadge size="row" />
             ))}
           </div>
-          <PetSummary
-            className="w-10 md:w-12"
-            pets={teamVariants(team).petPackages[0] ?? [team.pet]}
-          />
+          {/* PetSummary is decorative — every caller has to name the pets
+              itself. The variant dock does it through the face's caption;
+              here the row is the only thing that says them at all. */}
+          <span className="sr-only">{`สัตว์เลี้ยง ${pets.join(" หรือ ")}`}</span>
+          <PetSummary className="w-10 md:w-12" pets={pets} />
         </div>
       </div>
       {/* Item centres its children, so the arrow sits at the right, level with
@@ -220,7 +230,10 @@ export function TeamCard({
             {team.counters ? `${team.counters} ทีมแก้` : "รอทีมแก้"}
           </span>
         </CardAction>
-        <CardTitle className="truncate text-lg font-semibold">
+        <CardTitle
+          className="truncate text-lg font-semibold"
+          title={team.title}
+        >
           {team.title}
         </CardTitle>
       </CardHeader>
@@ -260,7 +273,9 @@ export function CounterTeamMiniCard({ team }: { team: Team }) {
     <Card size="sm" className={cn("h-full", selectableCard)}>
       <CardHeader>
         <TeamTypeBadge team={team} />
-        <CardTitle className="line-clamp-2">{team.title}</CardTitle>
+        <CardTitle className="line-clamp-2" title={team.title}>
+          {team.title}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div
