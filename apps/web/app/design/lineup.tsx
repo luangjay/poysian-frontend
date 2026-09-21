@@ -151,36 +151,29 @@ function LineupSurface({
   className?: string;
 }) {
   return (
-    // The container and the grid have to be two elements: `container-type`
-    // makes an element a container for its descendants, never for itself, so
-    // a template switched by `@sm:` on this same node would never match — the
-    // cells would move and the columns would not.
     <div
       className={cn(
-        "@container grid w-full max-w-md overflow-hidden rounded-xl bg-muted p-2.5 ring-1 ring-foreground/10 [--card-spacing:--spacing(3)]",
+        "grid w-full max-w-md gap-6 overflow-hidden rounded-xl bg-muted p-2.5 ring-1 ring-foreground/10 [--card-spacing:--spacing(3)]",
         // Only a lineup carrying variants gets the floor; a team card's
         // surface is still sized by its rows alone.
         "has-[[data-slot=lineup-variants]]:min-h-60",
+        // One column unless there is a second thing to put in it. Both
+        // conditions are load-bearing and neither stands in for the other:
+        // the column exists because this lineup has variants, and it is
+        // beside the rows rather than under them because the viewport is
+        // wide enough. A team card has no variants at any width, so it stays
+        // a single column and its rails run the full surface.
+        //
+        // The column is a fixed 5rem rather than `auto`, which sized itself
+        // to a third of the surface and left the tiles hollow. 12rem is the
+        // rows' own floor — three overlapped w-18 tiles plus the pr-6 the
+        // B/F badge needs — so an oversized column overflows visibly instead
+        // of clipping portraits in silence.
+        "sm:has-[[data-slot=lineup-variants]]:grid-cols-[minmax(12rem,1fr)_5rem]",
         className
       )}
     >
-      <div
-        className={cn(
-          "grid grid-cols-2 gap-6",
-          // Beside the rows once the surface can hold both; the query is on
-          // the surface, not the viewport, because it is 28rem on the target
-          // page and wider on the counter page.
-          //
-          // The column is a fixed 5rem rather than `auto`, which sized itself
-          // to a third of the surface and left the tiles hollow. 12rem is the
-          // rows' own floor — three overlapped w-18 tiles plus the pr-6 the
-          // B/F badge needs — so an oversized column overflows visibly
-          // instead of clipping portraits in silence.
-          "@sm:grid-cols-[minmax(12rem,1fr)_5rem]"
-        )}
-      >
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
@@ -208,7 +201,7 @@ function LineupRows({
       // compile to the `grid-column`/`grid-row` shorthands, which reset the
       // matching start and hand the item back to auto-placement — which then
       // refuses to overlap the speed badge and drops the rows a row down.
-      className="col-start-1 col-end-3 row-start-1 mx-auto grid min-h-0 w-full max-w-sm grid-rows-2 gap-4 self-center [--lineup-hero-label-offset:calc((1rem+0.125rem)/2)] @sm:col-end-2 @sm:row-end-3"
+      className="col-start-1 row-start-1 mx-auto grid min-h-0 w-full max-w-sm grid-rows-2 gap-4 self-center [--lineup-hero-label-offset:calc((1rem+0.125rem)/2)]"
       aria-label="การจัดทีม"
       role="group"
     >
@@ -514,7 +507,7 @@ function LineupVariants({
           lets them sit together, and sit at the end. */}
       <div
         data-slot="lineup-variants"
-        className="col-start-1 col-end-3 row-start-2 flex items-end justify-center gap-2 @sm:col-start-2 @sm:row-start-1 @sm:row-end-3 @sm:flex-col @sm:justify-end"
+        className="col-start-1 row-start-2 flex items-end justify-center gap-2 sm:col-start-2 sm:row-start-1 sm:flex-col sm:justify-end"
       >
         {pets}
         {formation}

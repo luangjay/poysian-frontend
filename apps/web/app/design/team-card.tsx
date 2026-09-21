@@ -148,7 +148,7 @@ export function CounterTeamRow({
           description is still readable at. The fixed w-48/w-64 it replaces was
           me stopping the text from eating the row — which pinned it to an odd
           width on wide screens for no reason a reader could see. */}
-        <ItemContent className="w-full flex-none flex-row items-start gap-3 @xl:w-auto @xl:max-w-md @xl:flex-1">
+        <ItemContent className="w-full flex-none flex-row items-start gap-3 sm:w-auto sm:max-w-md sm:flex-1">
           <span className="shrink-0 text-sm leading-snug font-semibold text-muted-foreground tabular-nums">
             {rank}
           </span>
@@ -163,10 +163,10 @@ export function CounterTeamRow({
           — and that rule outranks a plain `self-center`, so the pet sat at the
           top of the row no matter what was added here. These are columns, not
           an icon beside text, so the component's opinion does not apply. */}
-        <div className="flex items-center gap-4 @xl:ml-auto">
+        <div className="flex items-center gap-4 sm:ml-auto">
           {/* No width, so `px` is a real knob: it widens the group rather than
             squeezing `shrink-0` portraits, and it is how far the rail fades. */}
-          <div className="relative flex shrink-0 items-center gap-2 px-3 @4xl:gap-3 @4xl:px-6">
+          <div className="relative flex shrink-0 items-center gap-2 px-3 lg:gap-3 lg:px-6">
             {/* The lineup's rail, carried into the row: it runs behind the
               portraits and fades at both ends, so the three read as one team
               rather than three loose tiles. Centred on the portraits rather
@@ -178,14 +178,14 @@ export function CounterTeamRow({
             {team.heroes.map((hero) => (
               <HeroPortrait
                 key={hero.name}
-                className="w-14 @4xl:w-18"
+                className="w-14 lg:w-18"
                 hero={hero}
                 rowBadge
               />
             ))}
           </div>
           <PetSummary
-            className="w-10 @4xl:w-12"
+            className="w-10 lg:w-12"
             pets={teamVariants(team).petPackages[0] ?? [team.pet]}
           />
         </div>

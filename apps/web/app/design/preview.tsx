@@ -459,12 +459,8 @@ export function DesignPreview({
                     description="เลือกทีมแก้เพื่อดูลำดับสกิลและแผนการรบ"
                     aside={<TeamCount value={counters.length} />}
                   />
-                  {/* The rows size themselves against this list, not the
-                      window — the section is what actually constrains them,
-                      and it is narrower than the viewport by the page's own
-                      padding. */}
                   {counters.length ? (
-                    <ItemGroup className="@container">
+                    <ItemGroup>
                       {counters.map((team, index) => (
                         <CounterTeamRow
                           key={team.id}
