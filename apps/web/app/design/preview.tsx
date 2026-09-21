@@ -270,7 +270,7 @@ function CounterStrategy({ target, team }: { target: Team; team: Team }) {
       </div>
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_21rem]">
-        <Lineup.Surface className="max-w-none">
+        <Lineup.Surface>
           <Lineup.Rows
             HeroTile={CounterHeroTile}
             loading="eager"
@@ -319,7 +319,7 @@ function BackLink({
         className
       )}
     >
-      <ArrowLeftIcon data-icon="inline-start" />
+      <ArrowLeftIcon className="size-4" data-icon="inline-start" />
       {label}
     </Link>
   );

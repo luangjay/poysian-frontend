@@ -441,8 +441,6 @@ export function TargetSummary({
   );
 
   return (
-    /* The column is exactly Lineup.Surface's max width, so the lineup sits
-       flush with the container edge instead of floating inside a wider track. */
     <section
       aria-labelledby="target-summary-title"
       className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_28rem] lg:gap-x-8 lg:gap-y-3"
@@ -451,19 +449,15 @@ export function TargetSummary({
           zero-height box overhanging it. The lineup spans both rows, so the
           top of the surface still lines up with the top of the link. */}
       <div className="lg:col-start-1 lg:row-start-1">{backLink}</div>
-      {/* Stacked, the title has to name the lineup before you meet it. It takes
-          the surface's own max-w-md and centres as a block, so the two rows
-          share both edges and every line here starts on the lineup's left edge
-          — centring the text instead would leave four separately centred
-          shapes with no spine.
+      {/* Flush left, on the same edge as the back link above it and the
+          counter rows below. It was a centred block matching the lineup's old
+          cap; with the lineup running the full width there is no such column
+          to match, and a centred text block reads as an indent.
 
-          Side by side from lg it caps at max-w-sm, which keeps the measure
-          deliberate rather than leaving a ragged edge partway across a 30rem
-          column. It sits at the top of its row under the back link: centring
-          was worth it when the lineup ran past 400px, but the surface now has
-          a 240px floor, so the leftover beneath is small enough that splitting
-          it only reads as the title hanging low. */}
-      <div className="mx-auto grid w-full max-w-md gap-3 lg:col-start-1 lg:row-start-2 lg:mx-0 lg:max-w-sm">
+          What is left is a measure cap, which is the text's own business:
+          max-w-prose while the section is one column, max-w-sm from lg where
+          a ragged edge partway across the 1fr track is what looks unplanned. */}
+      <div className="grid max-w-prose gap-3 lg:col-start-1 lg:row-start-2 lg:max-w-sm">
         {/* Plain, not tinted by team type: the badge below already spends
             that colour on the type, and two different facts wearing one colour
             8px apart read as one. */}
@@ -492,12 +486,14 @@ export function TargetSummary({
             </Badge>
           ))}
         </div>
-        <p className="text-base leading-relaxed text-muted-foreground">
+        {/* text-base was chosen to fill the column beside the lineup. Stacked
+            there is no column to fill, so it would just be larger. */}
+        <p className="text-sm leading-relaxed text-muted-foreground lg:text-base">
           {team.condition}
         </p>
       </div>
       <TargetVariantDock
-        className="mx-auto w-full max-w-md lg:col-start-2 lg:row-start-1 lg:row-end-3"
+        className="lg:col-start-2 lg:row-start-1 lg:row-end-3"
         team={team}
         variants={variants}
         selectedSpeed={selectedSpeed}

@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import Image from "next/image";
+import { cva } from "class-variance-authority";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import {
@@ -32,6 +33,62 @@ const heroRarityBackgroundSrcByRarity: Record<Hero["rarity"], string> = {
   gold: `${gameUiAssetBaseUrl}/Item_GradeBG04.png`,
 };
 
+/**
+ * The tile, plus the two pieces of furniture that have to stay in proportion
+ * to it: on the 72px portrait the role icon is 18px and the row badge 14px, a
+ * quarter and a fifth, so a tile that shrinks on its own just grows its own
+ * furniture. `row` is the counter list's tile — 56px until the row has the
+ * space for a full one — and each variant carries that same step.
+ */
+const heroPortraitVariants = cva(
+  "grid min-w-0 shrink-0 justify-items-center gap-0.5 text-center",
+  {
+    variants: {
+      size: {
+        sm: "w-11",
+        md: "w-18",
+        row: "w-14 md:w-18",
+      },
+    },
+    defaultVariants: { size: "md" },
+  }
+);
+
+const heroRoleIconVariants = cva(
+  "absolute bottom-0.5 left-0.5 z-30 drop-shadow-sm select-none",
+  {
+    variants: {
+      size: {
+        sm: "size-3",
+        md: "size-4.5",
+        row: "size-3.5 md:size-4.5",
+      },
+    },
+    defaultVariants: { size: "md" },
+  }
+);
+
+/**
+ * Filled rather than tinted: a 9px letter at 70% on a card background was thin
+ * to read. White, not a theme token — the disc is red or blue in both themes,
+ * so a foreground that followed the theme would invert against a background
+ * that does not.
+ */
+const heroRowBadgeVariants = cva(
+  "absolute right-0.5 bottom-1 z-30 grid place-items-center rounded-full border border-white leading-none font-bold text-white shadow-sm",
+  {
+    variants: {
+      size: {
+        sm: "size-2 text-[7px]",
+        md: "size-3.5 text-[10px]",
+        row: "size-3 text-[8px] md:size-3.5 md:text-[10px]",
+      },
+      row: { back: "bg-red", front: "bg-blue" },
+    },
+    defaultVariants: { size: "md" },
+  }
+);
+
 export function HeroPortrait({
   hero,
   className,
@@ -46,21 +103,17 @@ export function HeroPortrait({
   /** Front or back, marked on the portrait — for lists with no row rails. */
   rowBadge?: boolean;
   shared?: boolean;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "row";
 }) {
   const roleIconSrc = heroRoleIconByRole[hero.role] ?? universalRoleIconSrc;
+  // A `row` tile is 56px only under md, where asking for the 72px source
+  // costs a tier at most — not worth a third hint.
   const imageSizes = size === "sm" ? "2.75rem" : "4.5rem";
   // The portrait paints at 1.25x its frame, so it needs a source to match.
   const portraitSizes = size === "sm" ? "3.5rem" : "5.625rem";
 
   return (
-    <div
-      className={cn(
-        "grid min-w-0 shrink-0 justify-items-center gap-0.5 text-center",
-        size === "sm" ? "w-11" : "w-18",
-        className
-      )}
-    >
+    <div className={cn(heroPortraitVariants({ size, className }))}>
       <div className="relative isolate z-0 grid aspect-square w-full place-items-center overflow-hidden rounded-tl-xl rounded-tr-xs rounded-br-xl rounded-bl-xs border bg-muted shadow-lg">
         <div className="absolute inset-0.5 overflow-hidden rounded-[inherit]">
           <Image
@@ -100,10 +153,7 @@ export function HeroPortrait({
         />
         <Image
           alt=""
-          className={cn(
-            "absolute bottom-0.5 left-0.5 z-30 drop-shadow-sm select-none",
-            size === "sm" ? "size-3" : "bottom-0.5 size-4.5"
-          )}
+          className={heroRoleIconVariants({ size })}
           height={40}
           loading={loading}
           src={roleIconSrc}
@@ -115,17 +165,7 @@ export function HeroPortrait({
           </span>
         ) : null}
         {rowBadge ? (
-          <span
-            className={cn(
-              // Filled rather than tinted: a 9px letter at 70% on a card
-              // background was thin to read. White, not a theme token — the
-              // disc is red or blue in both themes, so a foreground that
-              // followed the theme would invert against a background that
-              // does not.
-              "absolute right-0.5 bottom-1 z-30 grid size-3 place-items-center rounded-full border border-white text-[8px] leading-none font-bold text-white shadow-sm",
-              hero.row === "back" ? "bg-red" : "bg-blue"
-            )}
-          >
+          <span className={heroRowBadgeVariants({ size, row: hero.row })}>
             <span className="sr-only">
               {hero.row === "back" ? "แถวหลัง" : "แถวหน้า"}
             </span>
@@ -153,23 +193,28 @@ function LineupSurface({
   return (
     <div
       className={cn(
-        "grid w-full max-w-md gap-6 overflow-hidden rounded-xl bg-muted p-2.5 ring-1 ring-foreground/10 [--card-spacing:--spacing(3)]",
+        // No max width: the surface fills whatever cell it is given, and the
+        // host is the only thing that knows how wide that should be — a card
+        // hands it the card, the target page hands it a 28rem grid track.
+        // Capping here left a team card with an empty strip beside its own
+        // lineup on any screen wider than the cap.
+        "grid w-full gap-6 overflow-hidden rounded-xl bg-muted p-2.5 ring-1 ring-foreground/10 [--card-spacing:--spacing(3)]",
         // Only a lineup carrying variants gets the floor; a team card's
         // surface is still sized by its rows alone.
         "has-[[data-slot=lineup-variants]]:min-h-60",
-        // One column unless there is a second thing to put in it. Both
-        // conditions are load-bearing and neither stands in for the other:
-        // the column exists because this lineup has variants, and it is
-        // beside the rows rather than under them because the viewport is
-        // wide enough. A team card has no variants at any width, so it stays
-        // a single column and its rails run the full surface.
+        // One column unless there is a second thing to put in it — a team
+        // card has no variants at any width, so it stays a single column and
+        // its rails run the full surface.
         //
         // The column is a fixed 5rem rather than `auto`, which sized itself
         // to a third of the surface and left the tiles hollow. 12rem is the
         // rows' own floor — three overlapped w-18 tiles plus the pr-6 the
         // B/F badge needs — so an oversized column overflows visibly instead
         // of clipping portraits in silence.
-        "sm:has-[[data-slot=lineup-variants]]:grid-cols-[minmax(12rem,1fr)_5rem]",
+        //
+        // Both fit at the 360px floor: 328 of container, less 20 of padding,
+        // leaves 308 for a 192 + 24 + 72 lineup.
+        "has-[[data-slot=lineup-variants]]:grid-cols-[minmax(12rem,1fr)_4.5rem]",
         className
       )}
     >
@@ -507,7 +552,7 @@ function LineupVariants({
           lets them sit together, and sit at the end. */}
       <div
         data-slot="lineup-variants"
-        className="col-start-1 row-start-2 flex items-end justify-center gap-2 sm:col-start-2 sm:row-start-1 sm:flex-col sm:justify-end"
+        className="col-start-2 row-start-1 flex flex-col items-end justify-end gap-2"
       >
         {pets}
         {formation}
@@ -542,7 +587,10 @@ function VariantFace({
   return (
     <span
       className={cn(
-        "flex size-20 shrink-0 flex-col items-center justify-center rounded-lg bg-card p-2",
+        // A hero tile square: the faces read as the lineup's own furniture
+        // rather than a third size on the surface. The 48px art inside leaves
+        // 4px for the pet's count badge to overhang into.
+        "flex size-18 shrink-0 flex-col items-center justify-center rounded-lg bg-card p-2",
         variantTriggerStates
       )}
     >

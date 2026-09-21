@@ -256,7 +256,7 @@ export function CounterHeroTile({
   const skillBySlot = new Map(skills.map((skill) => [skill.slot, skill]));
 
   return (
-    <div className={cn("relative w-18 shrink-0", className)}>
+    <div className={cn("relative w-fit shrink-0", className)}>
       <HeroDetailTile hero={hero} loading={loading} shared={shared} />
       {skills.length ? (
         <ol

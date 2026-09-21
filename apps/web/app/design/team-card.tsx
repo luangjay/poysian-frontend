@@ -133,7 +133,7 @@ export function CounterTeamRow({
 }) {
   return (
     <Item
-      className="gap-4 bg-card"
+      className="bg-card"
       render={<Link href={`/design?target=${target.id}&counter=${team.id}`} />}
       variant="outline"
     >
@@ -176,16 +176,11 @@ export function CounterTeamRow({
               className="absolute inset-x-0 top-[calc(50%-0.5625rem)] h-1.5 rounded-full bg-linear-to-r from-transparent via-muted-foreground/20 to-transparent"
             />
             {team.heroes.map((hero) => (
-              <HeroPortrait
-                key={hero.name}
-                className="w-14 lg:w-18"
-                hero={hero}
-                rowBadge
-              />
+              <HeroPortrait key={hero.name} hero={hero} rowBadge size="row" />
             ))}
           </div>
           <PetSummary
-            className="w-10 lg:w-12"
+            className="w-10 md:w-12"
             pets={teamVariants(team).petPackages[0] ?? [team.pet]}
           />
         </div>
@@ -195,7 +190,7 @@ export function CounterTeamRow({
       <ItemActions>
         <ArrowUpRightIcon
           aria-hidden="true"
-          className="text-muted-foreground"
+          className="size-4 text-muted-foreground"
         />
       </ItemActions>
     </Item>
@@ -253,7 +248,7 @@ export function TeamCard({
         ) : null}
         <span className="ml-auto flex items-center gap-1 text-xs font-medium text-foreground">
           ดูทีมแก้
-          <ArrowUpRightIcon aria-hidden="true" />
+          <ArrowUpRightIcon aria-hidden="true" className="size-4" />
         </span>
       </CardFooter>
     </Card>
