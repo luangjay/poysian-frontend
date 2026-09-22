@@ -74,12 +74,17 @@ function ThemeToggle() {
 
 export function SiteHeader({
   guildName,
-  onJumpToSearch,
+  searchHref,
   shareTitle,
 }: {
   guildName: string;
-  /** Only the discovery view has a search field to jump to. */
-  onJumpToSearch?: () => void;
+  /**
+   * Only the discovery view has a search field to jump to. A link rather than
+   * a scroll handler: the browser already scrolls a fragment into view, honours
+   * the target's scroll-margin under the sticky bar, moves focus into the field
+   * because it is focusable, and does all of it before hydration.
+   */
+  searchHref?: string;
   /** Names the thing being shared, so the link previews as that team. */
   shareTitle: string;
 }) {
@@ -222,17 +227,18 @@ export function SiteHeader({
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
-              {onJumpToSearch ? (
-                <Button
+              {searchHref ? (
+                <Link
                   aria-label="ค้นหาทีม"
-                  className="size-10 rounded-full [&_svg:not([class*='size-'])]:size-5"
-                  onClick={onJumpToSearch}
-                  size="icon"
+                  className={cn(
+                    buttonVariants({ size: "icon", variant: "outline" }),
+                    "size-10 rounded-full [&_svg:not([class*='size-'])]:size-5"
+                  )}
+                  href={searchHref}
                   title="ค้นหาทีม"
-                  variant="outline"
                 >
                   <MagnifyingGlassIcon aria-hidden="true" />
-                </Button>
+                </Link>
               ) : null}
               <ThemeToggle />
               <Button

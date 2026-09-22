@@ -35,6 +35,10 @@ export default function RootLayout({
       lang="th"
       suppressHydrationWarning
       className={cn(
+        // The header's search control is a fragment link now, so the glide to
+        // it is the browser's, which means CSS has to opt in — and opt out
+        // again for anyone who asked for less motion.
+        "scroll-smooth motion-reduce:scroll-auto",
         "antialiased",
         fontMono.variable,
         "font-sans",

@@ -1,3 +1,8 @@
+"use client";
+
+// @phosphor-icons/react creates its size/weight context at module scope
+// without a "use client" of its own, so importing an icon is what pulls a
+// file into the client bundle — not anything this file does itself.
 import { type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
@@ -122,6 +127,36 @@ function TeamTagRow({
  * Only the name survives from the card. The condition and the tags were what
  * made the row a card with a list's job.
  */
+/**
+ * A team's three heroes on the lineup's rail, carried into a row: it runs
+ * behind the portraits and fades at both ends, so they read as one team rather
+ * than three loose tiles. Front before back, which is the order the game's own
+ * team tables use, and which clusters the B badges at the right of the trio.
+ *
+ * Shared so the counter list and the target it counters cannot drift apart —
+ * the two sit a few hundred pixels from each other on the same page.
+ */
+export function TeamHeroRail({ team }: { team: Team }) {
+  const heroes = [
+    ...team.heroes.filter((hero) => hero.row === "front"),
+    ...team.heroes.filter((hero) => hero.row === "back"),
+  ];
+
+  return (
+    // No width, so `px` is a real knob: it widens the group rather than
+    // squeezing `shrink-0` portraits, and it is how far the rail fades.
+    <div className="relative flex shrink-0 items-center gap-2 px-3 lg:gap-3 lg:px-6">
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-0 top-[calc(50%-0.5625rem)] h-1.5 rounded-full bg-linear-to-r from-transparent via-muted-foreground/20 to-transparent"
+      />
+      {heroes.map((hero) => (
+        <HeroPortrait key={hero.name} hero={hero} rowBadge size="row" />
+      ))}
+    </div>
+  );
+}
+
 export function CounterTeamRow({
   rank,
   target,
@@ -132,11 +167,6 @@ export function CounterTeamRow({
   team: Team;
 }) {
   const pets = teamVariants(team).petPackages[0] ?? [team.pet];
-  // Front before back, which is the order the game's own team tables use.
-  const heroes = [
-    ...team.heroes.filter((hero) => hero.row === "front"),
-    ...team.heroes.filter((hero) => hero.row === "back"),
-  ];
 
   return (
     <Item
@@ -173,25 +203,7 @@ export function CounterTeamRow({
           top of the row no matter what was added here. These are columns, not
           an icon beside text, so the component's opinion does not apply. */}
         <div className="flex items-center gap-4 sm:ml-auto">
-          {/* No width, so `px` is a real knob: it widens the group rather than
-            squeezing `shrink-0` portraits, and it is how far the rail fades. */}
-          <div className="relative flex shrink-0 items-center gap-2 px-3 lg:gap-3 lg:px-6">
-            {/* The lineup's rail, carried into the row: it runs behind the
-              portraits and fades at both ends, so the three read as one team
-              rather than three loose tiles. Centred on the portraits rather
-              than the tiles — the offset backs out the name label below. */}
-            <span
-              aria-hidden="true"
-              className="absolute inset-x-0 top-[calc(50%-0.5625rem)] h-1.5 rounded-full bg-linear-to-r from-transparent via-muted-foreground/20 to-transparent"
-            />
-            {heroes.map((hero) => (
-              <HeroPortrait key={hero.name} hero={hero} rowBadge size="row" />
-            ))}
-          </div>
-          {/* PetSummary is decorative — every caller has to name the pets
-              itself. The variant dock does it through the face's caption;
-              here the row is the only thing that says them at all. */}
-          <span className="sr-only">{`สัตว์เลี้ยง ${pets.join(" หรือ ")}`}</span>
+          <TeamHeroRail team={team} />
           <PetSummary className="w-10 md:w-12" pets={pets} />
         </div>
       </div>
@@ -210,15 +222,10 @@ export function CounterTeamRow({
 export function TeamCard({
   team,
   eagerImages = false,
-  sharedHeroNames,
 }: {
   team: Team;
   eagerImages?: boolean;
-  sharedHeroNames?: string[];
 }) {
-  const sharedCount = sharedHeroNames
-    ? team.heroes.filter((hero) => sharedHeroNames.includes(hero.name)).length
-    : 0;
   return (
     <Card
       className={cn("h-full [--card-spacing:--spacing(3)]", selectableCard)}
@@ -239,55 +246,15 @@ export function TeamCard({
       </CardHeader>
       <CardContent>
         <Lineup.Surface>
-          <Lineup.Rows
-            loading={eagerImages ? "eager" : "lazy"}
-            sharedHeroNames={sharedHeroNames}
-            team={team}
-          />
+          <Lineup.Rows loading={eagerImages ? "eager" : "lazy"} team={team} />
         </Lineup.Surface>
       </CardContent>
       <CardFooter className="mt-auto justify-between gap-2">
-        {sharedCount ? (
-          <Badge
-            className="gap-1.5 rounded-md text-muted-foreground"
-            variant="outline"
-          >
-            <span
-              aria-hidden="true"
-              className="size-2 rounded-full bg-primary"
-            />
-            ใช้ตัวร่วมกัน {sharedCount}
-          </Badge>
-        ) : null}
         <span className="ml-auto flex items-center gap-1 text-xs font-medium text-foreground">
           ดูทีมแก้
           <ArrowUpRightIcon aria-hidden="true" className="size-4" />
         </span>
       </CardFooter>
-    </Card>
-  );
-}
-
-export function CounterTeamMiniCard({ team }: { team: Team }) {
-  return (
-    <Card size="sm" className={cn("h-full", selectableCard)}>
-      <CardHeader>
-        <TeamTypeBadge team={team} />
-        <CardTitle className="line-clamp-2" title={team.title}>
-          {team.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div
-          aria-label={`ตัวละคร: ${team.title}`}
-          className="flex items-start gap-1"
-          role="group"
-        >
-          {team.heroes.slice(0, 3).map((hero) => (
-            <HeroPortrait key={hero.name} hero={hero} size="sm" />
-          ))}
-        </div>
-      </CardContent>
     </Card>
   );
 }

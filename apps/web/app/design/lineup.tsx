@@ -35,9 +35,12 @@ const heroRarityBackgroundSrcByRarity: Record<Hero["rarity"], string> = {
 
 /**
  * The tile, plus the two pieces of furniture that have to stay in proportion
- * to it: on the 72px portrait the role icon is 18px and the row badge 14px, a
- * quarter and a fifth, so a tile that shrinks on its own just grows its own
- * furniture. `row` is the counter list's tile — 56px until the row has the
+ * to it. `sm` is the route's one small size — the speed order's hover card and
+ * the counter page's "กำลังแก้ทีมนี้" line both take it, so there is a single
+ * number to turn when either looks wrong — and at 3.5rem it lands on the same
+ * furniture `row` already uses at that width. On the 72px portrait the role
+ * icon is 18px and the row badge 14px, a quarter and a fifth, so a tile that
+ * shrinks on its own just grows its own furniture. `row` is the counter list's tile — 56px until the row has the
  * space for a full one — and each variant carries that same step.
  */
 const heroPortraitVariants = cva(
@@ -45,9 +48,10 @@ const heroPortraitVariants = cva(
   {
     variants: {
       size: {
-        sm: "w-11",
+        sm: "w-14",
         md: "w-18",
         row: "w-14 md:w-18",
+        lineup: "w-16 sm:w-18",
       },
     },
     defaultVariants: { size: "md" },
@@ -59,9 +63,10 @@ const heroRoleIconVariants = cva(
   {
     variants: {
       size: {
-        sm: "size-3",
+        sm: "size-3.5",
         md: "size-4.5",
         row: "size-3.5 md:size-4.5",
+        lineup: "size-4 sm:size-4.5",
       },
     },
     defaultVariants: { size: "md" },
@@ -79,9 +84,10 @@ const heroRowBadgeVariants = cva(
   {
     variants: {
       size: {
-        sm: "size-2 text-[7px]",
+        sm: "size-3 text-[8px]",
         md: "size-3.5 text-[10px]",
         row: "size-3 text-[8px] md:size-3.5 md:text-[10px]",
+        lineup: "size-3 text-[8px] sm:size-3.5 sm:text-[10px]",
       },
       row: { back: "bg-red", front: "bg-blue" },
     },
@@ -94,7 +100,6 @@ export function HeroPortrait({
   className,
   loading = "lazy",
   rowBadge = false,
-  shared = false,
   size = "md",
 }: {
   hero: Hero;
@@ -102,15 +107,14 @@ export function HeroPortrait({
   loading?: "eager" | "lazy";
   /** Front or back, marked on the portrait — for lists with no row rails. */
   rowBadge?: boolean;
-  shared?: boolean;
-  size?: "sm" | "md" | "row";
+  size?: "sm" | "md" | "row" | "lineup";
 }) {
   const roleIconSrc = heroRoleIconByRole[hero.role] ?? universalRoleIconSrc;
   // A `row` tile is 56px only under md, where asking for the 72px source
   // costs a tier at most — not worth a third hint.
-  const imageSizes = size === "sm" ? "2.75rem" : "4.5rem";
+  const imageSizes = size === "sm" ? "3.5rem" : "4.5rem";
   // The portrait paints at 1.25x its frame, so it needs a source to match.
-  const portraitSizes = size === "sm" ? "3.5rem" : "5.625rem";
+  const portraitSizes = size === "sm" ? "4.375rem" : "5.625rem";
 
   return (
     <div className={cn(heroPortraitVariants({ size, className }))}>
@@ -147,7 +151,7 @@ export function HeroPortrait({
           className="pointer-events-none absolute top-0 right-0 z-20 h-auto w-full select-none"
           height={128}
           loading={loading}
-          sizes={size === "sm" ? "44px" : "72px"}
+          sizes={size === "sm" ? "56px" : "72px"}
           src={heroRarityFrameSrc}
           width={145}
         />
@@ -159,11 +163,6 @@ export function HeroPortrait({
           src={roleIconSrc}
           width={40}
         />
-        {shared ? (
-          <span className="absolute top-1 left-1 z-30 grid size-2.5 place-items-center rounded-full bg-primary ring-2 ring-muted">
-            <span className="sr-only">ตัวร่วมกับทีมเป้าหมาย</span>
-          </span>
-        ) : null}
         {rowBadge ? (
           <span className={heroRowBadgeVariants({ size, row: hero.row })}>
             <span className="sr-only">
@@ -198,7 +197,7 @@ function LineupSurface({
         // hands it the card, the target page hands it a 28rem grid track.
         // Capping here left a team card with an empty strip beside its own
         // lineup on any screen wider than the cap.
-        "grid w-full gap-6 overflow-hidden rounded-xl bg-muted p-2.5 ring-1 ring-foreground/10 [--card-spacing:--spacing(3)]",
+        "grid w-full gap-4 overflow-hidden rounded-xl bg-muted p-2.5 ring-1 ring-foreground/10 [--card-spacing:--spacing(3)]",
         // Only a lineup carrying variants gets the floor; a team card's
         // surface is still sized by its rows alone.
         "has-[[data-slot=lineup-variants]]:min-h-60",
@@ -212,9 +211,14 @@ function LineupSurface({
         // B/F badge needs — so an oversized column overflows visibly instead
         // of clipping portraits in silence.
         //
-        // Both fit at the 360px floor: 328 of container, less 20 of padding,
-        // leaves 308 for a 192 + 24 + 72 lineup.
-        "has-[[data-slot=lineup-variants]]:grid-cols-[minmax(12rem,1fr)_4.5rem]",
+        // Under sm the whole lineup steps down a size, because fitting and
+        // having room are not the same thing: at the 360px floor the full-size
+        // one spent 288 of the 308 available and read as wall to wall. The
+        // small step spends 176 + 16 + 64, which leaves the rows somewhere to
+        // breathe. Each floor is its own tile's row width plus the pr the B/F
+        // badge needs: 2(4rem) + 1.5rem + 1.25rem, and 2(4.5rem) + 3rem.
+        "has-[[data-slot=lineup-variants]]:grid-cols-[minmax(11rem,1fr)_4rem]",
+        "sm:gap-6 sm:has-[[data-slot=lineup-variants]]:grid-cols-[minmax(12rem,1fr)_4.5rem]",
         className
       )}
     >
@@ -227,7 +231,6 @@ function LineupRows({
   team,
   HeroTile = HeroPortrait,
   loading = "lazy",
-  sharedHeroNames,
 }: {
   team: Team;
   HeroTile?: (props: {
@@ -235,10 +238,9 @@ function LineupRows({
     className?: string;
     skills?: SkillOrder[];
     loading?: "eager" | "lazy";
-    shared?: boolean;
+    size?: "lineup";
   }) => ReactNode;
   loading?: "eager" | "lazy";
-  sharedHeroNames?: string[];
 }) {
   return (
     <div
@@ -282,13 +284,15 @@ function LineupRows({
               </span>
             </div>
             {/* Two heroes spread by a gap and three overlapped by a
-                negative margin land on the same row width when both values are
-                a third of the tile: 2t + t/3 === 3t - 2(t/3). The tile is
-                w-18, so that third is 1.5rem — gap-6 and -ml-6. Change one and
-                the rows stop lining up. */}
+                negative margin land on the same row width whenever the gap
+                plus twice the overlap equals the tile: 2t + g === 3t - 2m.
+                4.5rem holds with 1.5rem and 1.5rem, 4rem with 1.5rem and
+                1.25rem — so the gap is the same at both sizes and only the
+                overlap steps. Change a tile without re-solving that and the
+                two rows stop lining up. */}
             <div
               className={cn(
-                "relative flex min-w-0 flex-1 justify-center pr-6",
+                "relative flex min-w-0 flex-1 justify-center pr-5 sm:pr-6",
                 heroes.length === 2 && "gap-6"
               )}
             >
@@ -296,9 +300,9 @@ function LineupRows({
                 <HeroTile
                   key={hero.name}
                   hero={hero}
-                  className={cn(stacked && index > 0 && "-ml-6")}
+                  className={cn(stacked && index > 0 && "-ml-5 sm:-ml-6")}
+                  size="lineup"
                   loading={loading}
-                  shared={sharedHeroNames?.includes(hero.name)}
                   skills={team.skillOrder?.filter(
                     (skill) => skill.hero === hero.name
                   )}
@@ -590,7 +594,7 @@ function VariantFace({
         // A hero tile square: the faces read as the lineup's own furniture
         // rather than a third size on the surface. The 48px art inside leaves
         // 4px for the pet's count badge to overhang into.
-        "flex size-18 shrink-0 flex-col items-center justify-center rounded-lg bg-card p-2",
+        "flex size-16 shrink-0 flex-col items-center justify-center rounded-lg bg-card p-2 sm:size-18",
         variantTriggerStates
       )}
     >

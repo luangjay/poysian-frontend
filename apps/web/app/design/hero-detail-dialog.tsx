@@ -1,3 +1,8 @@
+"use client";
+
+// @phosphor-icons/react creates its size/weight context at module scope
+// without a "use client" of its own, so importing an icon is what pulls a
+// file into the client bundle — not anything this file does itself.
 import Image from "next/image";
 import { StarIcon } from "@phosphor-icons/react";
 import { Badge } from "@workspace/ui/components/badge";
@@ -95,12 +100,12 @@ function HeroDetailTile({
   hero,
   className,
   loading,
-  shared,
+  size,
 }: {
   hero: Hero;
   className?: string;
   loading?: "eager" | "lazy";
-  shared?: boolean;
+  size?: "lineup";
 }) {
   const guidance = heroGuidance[hero.role] ?? defaultHeroGuidance;
   const roleIconSrc = heroRoleIconByRole[hero.role] ?? universalRoleIconSrc;
@@ -115,7 +120,7 @@ function HeroDetailTile({
           className
         )}
       >
-        <HeroPortrait hero={hero} loading={loading} shared={shared} />
+        <HeroPortrait hero={hero} loading={loading} size={size} />
       </DialogTrigger>
       <DialogContent className="max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto p-5 sm:max-w-3xl">
         <DialogHeader className="gap-4 pr-8">
@@ -245,23 +250,31 @@ export function CounterHeroTile({
   className,
   skills = [],
   loading,
-  shared,
+  size,
 }: {
   hero: Hero;
   className?: string;
   skills?: SkillOrder[];
   loading?: "eager" | "lazy";
-  shared?: boolean;
+  size?: "lineup";
 }) {
   const skillBySlot = new Map(skills.map((skill) => [skill.slot, skill]));
 
   return (
     <div className={cn("relative w-fit shrink-0", className)}>
-      <HeroDetailTile hero={hero} loading={loading} shared={shared} />
+      <HeroDetailTile hero={hero} loading={loading} size={size} />
       {skills.length ? (
         <ol
           aria-label={`ลำดับสกิล ${hero.name}`}
-          className="absolute top-0 bottom-0 left-full z-10 ml-1"
+          // Tight against its own portrait: the column sits in the row's
+          // gap-6, so margin here is what says which hero the slots belong to.
+          //
+          // The discs ride the lineup tile down a size with it. A 4.5rem tile
+          // takes a 1.25rem disc stepped 1.5rem apart; a 4rem tile takes
+          // 1.125rem stepped 1.375rem. Both leave the same 0.25rem between
+          // adjacent discs, which is the proportion worth keeping — three of
+          // them have to stack inside the portrait's own height.
+          className="absolute top-0 bottom-0 left-full z-10 ml-0.5 [--skill-slot-step:1.375rem] sm:[--skill-slot-step:1.5rem]"
         >
           {(["B", "T", "A"] as const).map((slot) => {
             const skill = skillBySlot.get(slot);
@@ -272,16 +285,16 @@ export function CounterHeroTile({
                 className={cn(
                   "absolute left-0 -translate-y-1/2",
                   slot === "B" &&
-                    "top-[calc(50%-var(--lineup-hero-label-offset)+1.5rem)]",
+                    "top-[calc(50%-var(--lineup-hero-label-offset)+var(--skill-slot-step))]",
                   slot === "T" &&
                     "top-[calc(50%-var(--lineup-hero-label-offset))]",
                   slot === "A" &&
-                    "top-[calc(50%-var(--lineup-hero-label-offset)-1.5rem)]"
+                    "top-[calc(50%-var(--lineup-hero-label-offset)-var(--skill-slot-step))]"
                 )}
               >
                 <span
                   className={cn(
-                    "relative grid size-5 place-items-center rounded-full text-xs font-semibold shadow-sm",
+                    "relative grid size-4.5 place-items-center rounded-full text-[11px] font-semibold shadow-sm sm:size-5 sm:text-xs",
                     slot === "A" &&
                       "after:pointer-events-none after:absolute after:inset-0.5 after:rounded-full after:border",
                     slot === "A" &&

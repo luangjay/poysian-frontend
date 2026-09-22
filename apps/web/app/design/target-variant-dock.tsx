@@ -3,14 +3,6 @@
 import { useState, type ReactNode } from "react";
 import { CheckIcon } from "@phosphor-icons/react";
 import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@workspace/ui/components/dialog";
 import {
   Field,
   FieldContent,
@@ -19,11 +11,6 @@ import {
   FieldSet,
   FieldTitle,
 } from "@workspace/ui/components/field";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@workspace/ui/components/hover-card";
 import {
   RadioGroup,
   RadioGroupItem,
@@ -44,6 +31,7 @@ import {
   withFormation,
 } from "./lineup";
 import { TeamTypeBadge } from "./team-card";
+import { VariantPopover } from "./variant-popover";
 
 const speedOptions: Array<TargetVariants["speeds"][number]> = [
   "ปกติ",
@@ -86,85 +74,6 @@ const optionCard =
 const optionCaption =
   "w-full bg-muted px-2 py-1.5 text-center text-xs leading-tight font-medium";
 
-type VariantSelectorProps = {
-  title: string;
-  children: ReactNode;
-  content: (close: () => void) => ReactNode;
-  contentClassName?: string;
-  dialogClassName?: string;
-  align?: "start" | "end" | "center";
-};
-
-function VariantSelector({
-  title,
-  children,
-  content,
-  contentClassName,
-  dialogClassName,
-  align = "center",
-}: VariantSelectorProps) {
-  const [hoverCardOpen, setHoverCardOpen] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  return (
-    <Dialog
-      open={dialogOpen}
-      onOpenChange={(open) => {
-        setDialogOpen(open);
-        if (open) {
-          setHoverCardOpen(false);
-        }
-      }}
-    >
-      <HoverCard open={hoverCardOpen} onOpenChange={setHoverCardOpen}>
-        <HoverCardTrigger
-          closeDelay={180}
-          delay={120}
-          render={
-            <DialogTrigger
-              aria-label={`เลือกรูปแบบ${title}`}
-              render={
-                <Button
-                  // The cell inside owns every state and, now that it is a
-                  // fixed square, its size too — `h-full` here resolved
-                  // against the stack's full height and gave each trigger the
-                  // whole column. `h-auto` undoes the size variant's h-8.
-                  className="group h-auto w-auto rounded-lg p-0 hover:bg-transparent focus-visible:border-transparent focus-visible:ring-0"
-                  variant="ghost"
-                />
-              }
-            />
-          }
-        >
-          {children}
-        </HoverCardTrigger>
-        <HoverCardContent
-          align={align}
-          className={cn(
-            "hidden flex-col gap-2.5 p-3 [--popup-pad:0.75rem] [--popup-radius:var(--radius-lg)] sm:flex",
-            contentClassName
-          )}
-          side="top"
-        >
-          <p className="text-xs font-medium text-muted-foreground">{title}</p>
-          {content(() => setHoverCardOpen(false))}
-        </HoverCardContent>
-      </HoverCard>
-      <DialogContent
-        className={cn(
-          "max-w-[calc(100%-2rem)] gap-3 p-4 [--popup-pad:1rem] [--popup-radius:var(--radius-xl)] sm:max-w-md",
-          dialogClassName
-        )}
-      >
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-        {content(() => setDialogOpen(false))}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 type TargetVariantDockProps = {
   className?: string;
   team: Team;
@@ -197,12 +106,12 @@ function TargetVariantDock({
         />
         <Lineup.Variants
           speed={
-            <VariantSelector
+            <VariantPopover
               align="start"
-              dialogClassName="w-96"
               title="ความเร็ว"
-              content={(close) => (
-                <FieldSet className="gap-2">
+              triggerLabel="เลือกรูปแบบความเร็ว"
+              content={(close: () => void) => (
+                <FieldSet className="min-w-0 gap-2">
                   <FieldLegend className="sr-only">ความเร็ว</FieldLegend>
                   <RadioGroup
                     aria-label="เลือกรูปแบบความเร็ว"
@@ -246,10 +155,10 @@ function TargetVariantDock({
               )}
             >
               <Lineup.Speed value={selectedSpeed} />
-            </VariantSelector>
+            </VariantPopover>
           }
           pets={
-            <VariantSelector
+            <VariantPopover
               // Both right-column triggers sit at the surface's edge, so their
               // popups have to grow inward rather than centre on an 80px tile.
               align="end"
@@ -257,8 +166,14 @@ function TargetVariantDock({
               // third of the card, once its padding is taken out.
               contentClassName="w-96"
               title="สัตว์เลี้ยง"
-              content={(close) => (
-                <FieldSet className="gap-2">
+              triggerLabel="เลือกรูปแบบสัตว์เลี้ยง"
+              content={(close: () => void) => (
+                // min-w-0: a <fieldset> carries `min-width: min-content` from
+                // the UA stylesheet and preflight does not reset it, so it
+                // refuses to shrink below its widest child — which pushed the
+                // scrolling pet row out through the side of the dialog rather
+                // than scrolling it.
+                <FieldSet className="min-w-0 gap-2">
                   <FieldLegend className="sr-only">สัตว์เลี้ยง</FieldLegend>
                   {/* Two per view, the rest on a scroll. A real scrollport over
                     a carousel: arrow-keying a RadioGroup moves focus, and the
@@ -353,15 +268,15 @@ function TargetVariantDock({
               )}
             >
               <Lineup.Pets pets={selectedPetPackage} />
-            </VariantSelector>
+            </VariantPopover>
           }
           formation={
-            <VariantSelector
+            <VariantPopover
               align="end"
-              dialogClassName="w-96"
               title="แผนการรบ"
-              content={(close) => (
-                <FieldSet className="gap-2">
+              triggerLabel="เลือกรูปแบบแผนการรบ"
+              content={(close: () => void) => (
+                <FieldSet className="min-w-0 gap-2">
                   <FieldLegend className="sr-only">แผนการรบ</FieldLegend>
                   <RadioGroup
                     aria-label="เลือกแผนการรบ"
@@ -410,7 +325,7 @@ function TargetVariantDock({
               )}
             >
               <Lineup.Formation formation={selectedFormation} />
-            </VariantSelector>
+            </VariantPopover>
           }
         />
       </Lineup.Surface>
@@ -450,13 +365,10 @@ export function TargetSummary({
           top of the surface still lines up with the top of the link. */}
       <div className="lg:col-start-1 lg:row-start-1">{backLink}</div>
       {/* Flush left, on the same edge as the back link above it and the
-          counter rows below. It was a centred block matching the lineup's old
-          cap; with the lineup running the full width there is no such column
-          to match, and a centred text block reads as an indent.
-
-          What is left is a measure cap, which is the text's own business:
-          max-w-prose while the section is one column, max-w-sm from lg where
-          a ragged edge partway across the 1fr track is what looks unplanned. */}
+          counter rows below. What remains is a measure cap, which is the
+          text's own business: max-w-prose while the section is one column,
+          max-w-sm from lg where a ragged edge partway across the 1fr track is
+          what would look unplanned. */}
       <div className="grid max-w-prose gap-3 lg:col-start-1 lg:row-start-2 lg:max-w-sm">
         {/* Plain, not tinted by team type: the badge below already spends
             that colour on the type, and two different facts wearing one colour

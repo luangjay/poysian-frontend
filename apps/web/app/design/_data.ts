@@ -63,27 +63,36 @@ export type Team = {
   counters: number;
 };
 
-const heroImageByName: Record<string, string> = {
-  คริส: "kris",
-  ซอรัน: "sunran",
-  พาลานอส: "pallanus",
-  ยอนฮี: "yeonhee",
-  ยุนกอน: "yoongun-awakened",
-  สกัลด์: "skuld",
-  สไปค์: "spike",
-  ฮายอน: "hayeon",
-  เคลลิดิส: "gelidus",
-  โดยอง: "dongyoung",
-  โอม๊ก: "omok",
-  ไอลีน: "eileene",
-};
+/**
+ * Role and portrait are facts about a hero, not about a team, so they live
+ * here once — every team then only says who is in it and where they stand.
+ * Passing the role per appearance meant ฮายอน carried it ten times, and a
+ * role change had to be made in all ten.
+ */
+const heroCatalog = {
+  คริส: { role: "สมดุล", image: "kris" },
+  ซอรัน: { role: "เวท", image: "sunran" },
+  พาลานอส: { role: "สมดุล", image: "pallanus" },
+  ยอนฮี: { role: "เวท", image: "yeonhee" },
+  ยุนกอน: { role: "เวท", image: "yoongun-awakened" },
+  สกัลด์: { role: "เวท", image: "skuld" },
+  สไปค์: { role: "สมดุล", image: "spike" },
+  ฮายอน: { role: "สนับสนุน", image: "hayeon" },
+  เคลลิดิส: { role: "สมดุล", image: "gelidus" },
+  โดยอง: { role: "เวท", image: "dongyoung" },
+  โอม๊ก: { role: "เวท", image: "omok" },
+  ไอลีน: { role: "สมดุล", image: "eileene" },
+} as const satisfies Record<string, { role: string; image: string }>;
 
-const hero = (name: string, role: string, row: Hero["row"]): Hero => ({
+/** Keying on this turns a mistyped name into a type error rather than a
+ *  portrait that silently falls back to a letter. */
+type HeroName = keyof typeof heroCatalog;
+
+const hero = (name: HeroName, row: Hero["row"]): Hero => ({
   name,
-  role,
+  ...heroCatalog[name],
   rarity: "gold",
   row,
-  image: heroImageByName[name],
 });
 
 const counterVariants = (
@@ -106,9 +115,9 @@ export const targets: Team[] = [
     targetType: "magic",
     tags: ["วัดเลือด", "คุมสถานะ"],
     heroes: [
-      hero("ยอนฮี", "เวท", "back"),
-      hero("ยุนกอน", "เวท", "back"),
-      hero("ฮายอน", "ป้องกัน", "front"),
+      hero("ยอนฮี", "back"),
+      hero("ยุนกอน", "back"),
+      hero("ฮายอน", "front"),
     ],
     pet: "Pooki",
     variants: {
@@ -130,9 +139,9 @@ export const targets: Team[] = [
     targetType: "magic",
     tags: ["คุมสถานะ", "วัดเลือด"],
     heroes: [
-      hero("ยุนกอน", "เวท", "back"),
-      hero("โอม๊ก", "เวท", "front"),
-      hero("ฮายอน", "ป้องกัน", "front"),
+      hero("ยุนกอน", "back"),
+      hero("โอม๊ก", "front"),
+      hero("ฮายอน", "front"),
     ],
     pet: "Pooki",
     variants: {
@@ -150,9 +159,9 @@ export const targets: Team[] = [
     targetType: "offensive",
     tags: ["ปิดงาน", "เน้นความเร็ว"],
     heroes: [
-      hero("ยุนกอน", "เวท", "back"),
-      hero("โดยอง", "โจมตี", "back"),
-      hero("ฮายอน", "ป้องกัน", "front"),
+      hero("ยุนกอน", "back"),
+      hero("โดยอง", "back"),
+      hero("ฮายอน", "front"),
     ],
     pet: "Pooki",
     variants: {
@@ -173,9 +182,9 @@ export const targets: Team[] = [
     targetType: "magic",
     tags: ["คุมสถานะ", "เน้นความเร็ว"],
     heroes: [
-      hero("ยอนฮี", "เวท", "back"),
-      hero("ยุนกอน", "เวท", "back"),
-      hero("โดยอง", "โจมตี", "back"),
+      hero("ยอนฮี", "back"),
+      hero("ยุนกอน", "back"),
+      hero("โดยอง", "back"),
     ],
     pet: "Irin",
     variants: {
@@ -196,9 +205,9 @@ export const targets: Team[] = [
     targetType: "defensive",
     tags: ["สวนกลับ", "วัดเลือด"],
     heroes: [
-      hero("ยุนกอน", "เวท", "back"),
-      hero("สกัลด์", "ป้องกัน", "front"),
-      hero("โดยอง", "โจมตี", "front"),
+      hero("ยุนกอน", "back"),
+      hero("สกัลด์", "front"),
+      hero("โดยอง", "front"),
     ],
     pet: "Irin",
     variants: {
@@ -216,9 +225,9 @@ export const targets: Team[] = [
     targetType: "other",
     tags: ["คุมสถานะ", "ปิดงาน"],
     heroes: [
-      hero("ยุนกอน", "เวท", "back"),
-      hero("โดยอง", "โจมตี", "front"),
-      hero("โอม๊ก", "เวท", "front"),
+      hero("ยุนกอน", "back"),
+      hero("โดยอง", "front"),
+      hero("โอม๊ก", "front"),
     ],
     pet: "Croa",
     variants: {
@@ -239,9 +248,9 @@ export const targets: Team[] = [
     targetType: "offensive",
     tags: ["เน้นความเร็ว", "ปิดงาน"],
     heroes: [
-      hero("คริส", "โจมตี", "back"),
-      hero("พาลานอส", "โจมตี", "front"),
-      hero("สกัลด์", "ป้องกัน", "front"),
+      hero("คริส", "back"),
+      hero("พาลานอส", "front"),
+      hero("สกัลด์", "front"),
     ],
     pet: "Windy",
     variants: {
@@ -261,9 +270,9 @@ const counterFixtures: Team[] = [
     title: "เวทโอม๊กเปิดก่อน",
     type: "ทีมแก้",
     heroes: [
-      hero("ยุนกอน", "เวท", "back"),
-      hero("โอม๊ก", "เวท", "front"),
-      hero("โดยอง", "โจมตี", "front"),
+      hero("ยุนกอน", "back"),
+      hero("โอม๊ก", "front"),
+      hero("โดยอง", "front"),
     ],
     pet: "Irin",
     speedOrder: ["โอม๊ก", "ยุนกอน", "โดยอง"],
@@ -281,9 +290,9 @@ const counterFixtures: Team[] = [
     title: "เวทช้าฮายอนคริส",
     type: "ทีมแก้",
     heroes: [
-      hero("ซอรัน", "เวท", "back"),
-      hero("ฮายอน", "ป้องกัน", "front"),
-      hero("คริส", "โจมตี", "front"),
+      hero("ซอรัน", "back"),
+      hero("ฮายอน", "front"),
+      hero("คริส", "front"),
     ],
     pet: "Lulu",
     speedOrder: ["ฮายอน", "ซอรัน", "คริส"],
@@ -301,9 +310,9 @@ const counterFixtures: Team[] = [
     title: "เวทฮายอนพาลานอส",
     type: "ทีมแก้",
     heroes: [
-      hero("ฮายอน", "ป้องกัน", "back"),
-      hero("พาลานอส", "โจมตี", "back"),
-      hero("ไอลีน", "สนับสนุน", "front"),
+      hero("ฮายอน", "back"),
+      hero("พาลานอส", "back"),
+      hero("ไอลีน", "front"),
     ],
     pet: "Pooki",
     speedOrder: ["พาลานอส", "ไอลีน", "ฮายอน"],
@@ -321,9 +330,9 @@ const counterFixtures: Team[] = [
     title: "เวทสไปค์เคลลิดิส",
     type: "ทีมแก้",
     heroes: [
-      hero("สไปค์", "เวท", "back"),
-      hero("เคลลิดิส", "โจมตี", "front"),
-      hero("ฮายอน", "ป้องกัน", "front"),
+      hero("สไปค์", "back"),
+      hero("เคลลิดิส", "front"),
+      hero("ฮายอน", "front"),
     ],
     pet: "Croa",
     speedOrder: ["สไปค์", "เคลลิดิส", "ฮายอน"],
@@ -341,9 +350,9 @@ const counterFixtures: Team[] = [
     title: "เวทช้ายุนกอนคุมเกม",
     type: "ทีมแก้",
     heroes: [
-      hero("ยุนกอน", "เวท", "back"),
-      hero("ฮายอน", "ป้องกัน", "front"),
-      hero("โอม๊ก", "เวท", "front"),
+      hero("ยุนกอน", "back"),
+      hero("ฮายอน", "front"),
+      hero("โอม๊ก", "front"),
     ],
     pet: "Irin",
     speedOrder: ["ฮายอน", "ยุนกอน", "โอม๊ก"],
@@ -361,9 +370,9 @@ const counterFixtures: Team[] = [
     title: "เวทไวสกัลด์ปิดเกม",
     type: "ทีมแก้",
     heroes: [
-      hero("สกัลด์", "ป้องกัน", "back"),
-      hero("โดยอง", "โจมตี", "front"),
-      hero("โอม๊ก", "เวท", "front"),
+      hero("สกัลด์", "back"),
+      hero("โดยอง", "front"),
+      hero("โอม๊ก", "front"),
     ],
     pet: "Pooki",
     speedOrder: ["โอม๊ก", "โดยอง", "สกัลด์"],
@@ -381,9 +390,9 @@ const counterFixtures: Team[] = [
     title: "เวทโอม๊กกันสวน",
     type: "ทีมแก้",
     heroes: [
-      hero("โอม๊ก", "เวท", "back"),
-      hero("ฮายอน", "ป้องกัน", "front"),
-      hero("ยุนกอน", "เวท", "front"),
+      hero("โอม๊ก", "back"),
+      hero("ฮายอน", "front"),
+      hero("ยุนกอน", "front"),
     ],
     pet: "Croa",
     speedOrder: ["ยุนกอน", "โอม๊ก", "ฮายอน"],
@@ -401,9 +410,9 @@ const counterFixtures: Team[] = [
     title: "เวทยอนฮีทะลุหลัง",
     type: "ทีมแก้",
     heroes: [
-      hero("ยอนฮี", "เวท", "back"),
-      hero("โดยอง", "โจมตี", "back"),
-      hero("ฮายอน", "ป้องกัน", "front"),
+      hero("ยอนฮี", "back"),
+      hero("โดยอง", "back"),
+      hero("ฮายอน", "front"),
     ],
     pet: "Lulu",
     speedOrder: ["ยอนฮี", "โดยอง", "ฮายอน"],
@@ -421,9 +430,9 @@ const counterFixtures: Team[] = [
     title: "เวทฮายอนรับหน้า",
     type: "ทีมแก้",
     heroes: [
-      hero("ยุนกอน", "เวท", "back"),
-      hero("ฮายอน", "ป้องกัน", "front"),
-      hero("สกัลด์", "ป้องกัน", "front"),
+      hero("ยุนกอน", "back"),
+      hero("ฮายอน", "front"),
+      hero("สกัลด์", "front"),
     ],
     pet: "Irin",
     speedOrder: ["ฮายอน", "สกัลด์", "ยุนกอน"],
@@ -441,9 +450,9 @@ const counterFixtures: Team[] = [
     title: "เวทช้ายืนยาว",
     type: "ทีมแก้",
     heroes: [
-      hero("ยุนกอน", "เวท", "back"),
-      hero("โอม๊ก", "เวท", "front"),
-      hero("สกัลด์", "ป้องกัน", "front"),
+      hero("ยุนกอน", "back"),
+      hero("โอม๊ก", "front"),
+      hero("สกัลด์", "front"),
     ],
     pet: "Windy",
     speedOrder: ["สกัลด์", "ยุนกอน", "โอม๊ก"],
@@ -461,9 +470,9 @@ const counterFixtures: Team[] = [
     title: "เวทสามแถวหลัง",
     type: "ทีมแก้",
     heroes: [
-      hero("ยอนฮี", "เวท", "back"),
-      hero("ยุนกอน", "เวท", "back"),
-      hero("โอม๊ก", "เวท", "back"),
+      hero("ยอนฮี", "back"),
+      hero("ยุนกอน", "back"),
+      hero("โอม๊ก", "back"),
     ],
     pet: "Pooki",
     speedOrder: ["ยุนกอน", "ยอนฮี", "โอม๊ก"],
@@ -477,6 +486,12 @@ const counterFixtures: Team[] = [
     counters: 0,
   },
 ];
+
+/** Every tag any target carries, derived once — the filter panel offers the
+ *  dataset's tags, which do not change with what is on screen. */
+export const targetTags = Array.from(
+  new Set(targets.flatMap((team) => team.tags ?? []))
+);
 
 export function teamVariants(team: Team): TargetVariants {
   return (
