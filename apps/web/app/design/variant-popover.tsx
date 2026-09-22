@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { cva } from "class-variance-authority";
 import { Button } from "@workspace/ui/components/button";
 import {
   Dialog,
@@ -14,7 +15,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@workspace/ui/components/hover-card";
-import { cn } from "@workspace/ui/lib/utils";
 
 /**
  * One cell of a lineup's variant strip, and what it has to say for itself.
@@ -33,25 +33,42 @@ import { cn } from "@workspace/ui/lib/utils";
  * can act like a sheet, but a strip of options has one right width and a
  * 607px one at 639px only spreads three words across a screen.
  *
+ * A cell whose surface has to be wider says which size it is, rather than
+ * being handed a class to paste onto the card: the width is a property of the
+ * popover, not a detail of the caller's markup, and a prop that forwards a
+ * className lets a caller reach past the component into a part of it.
+ *
  * `dialogContent` exists because the two surfaces are not the same size: the
  * hover card is a fixed 16rem beside the cell, the dialog is most of a phone.
  * A cell that wants to spend that room differently says so; one that does not
  * says nothing and gets the same content in both.
  */
+/** `wide` is for a cell whose surface is a gallery rather than a few options —
+ *  the pet packages need a third one visible to read as a list. */
+const hoverCardVariants = cva(
+  "hidden flex-col gap-2.5 p-3 [--popup-pad:0.75rem] [--popup-radius:var(--radius-lg)] sm:flex",
+  {
+    variants: {
+      size: { default: "", wide: "w-96" },
+    },
+    defaultVariants: { size: "default" },
+  }
+);
+
 export function VariantPopover({
   align = "center",
   children,
   content,
-  contentClassName,
   dialogContent,
+  size,
   title,
   triggerLabel,
 }: {
   align?: "start" | "end" | "center";
   children: ReactNode;
   content: ReactNode | ((close: () => void) => ReactNode);
-  contentClassName?: string;
   dialogContent?: ReactNode | ((close: () => void) => ReactNode);
+  size?: "default" | "wide";
   title: string;
   triggerLabel: string;
 }) {
@@ -97,10 +114,7 @@ export function VariantPopover({
         </HoverCardTrigger>
         <HoverCardContent
           align={align}
-          className={cn(
-            "hidden flex-col gap-2.5 p-3 [--popup-pad:0.75rem] [--popup-radius:var(--radius-lg)] sm:flex",
-            contentClassName
-          )}
+          className={hoverCardVariants({ size })}
           side="top"
         >
           <p className="text-xs font-medium text-muted-foreground">{title}</p>

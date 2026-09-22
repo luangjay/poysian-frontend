@@ -164,7 +164,7 @@ function TargetVariantDock({
               align="end"
               // Wide enough for the companion row: 40 + 4 + 40 inside a
               // third of the card, once its padding is taken out.
-              contentClassName="w-96"
+              size="wide"
               title="สัตว์เลี้ยง"
               triggerLabel="เลือกรูปแบบสัตว์เลี้ยง"
               content={(close: () => void) => (

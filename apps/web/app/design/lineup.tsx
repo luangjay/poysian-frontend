@@ -353,9 +353,11 @@ function formationSpriteSrc(formation: TargetFormation, compact: boolean) {
 }
 
 export function FormationPreview({
+  className,
   formation,
   compact = false,
 }: {
+  className?: string;
   formation: TargetFormation;
   compact?: boolean;
 }) {
@@ -366,7 +368,11 @@ export function FormationPreview({
     <Image
       alt=""
       aria-hidden="true"
-      className={cn("h-auto shrink-0 select-none", compact ? "w-12" : "w-28")}
+      className={cn(
+        "h-auto shrink-0 select-none",
+        compact ? "w-12" : "w-28",
+        className
+      )}
       height={compact ? 66 : 99}
       sizes={compact ? "40px" : "112px"}
       src={formationSpriteSrc(formation, compact)}
@@ -579,25 +585,45 @@ const variantTriggerStates = cn(
   "group-hover:shadow-md group-focus-visible:ring-3 group-focus-visible:ring-ring/50"
 );
 
+/**
+ * Sized like a portrait, and for the same reason: the strip beside a lineup
+ * and a token in a row of 3.5rem portraits are one cell at two scales, so the
+ * scale is a variant rather than a class the caller pastes on. `sm` is exactly
+ * a row portrait, which leaves the p-2 wrapping 2.5rem of art with no slack.
+ */
+const variantFaceVariants = cva(
+  "flex shrink-0 flex-col items-center justify-center rounded-lg bg-card p-2",
+  {
+    variants: {
+      size: { default: "size-16 sm:size-18", sm: "size-14" },
+    },
+    defaultVariants: { size: "default" },
+  }
+);
+
+/** The art the face wraps, stepped with it. */
+const variantArtVariants = cva("", {
+  variants: {
+    size: { default: "w-12", sm: "w-10" },
+  },
+  defaultVariants: { size: "default" },
+});
+
+type VariantSize = "default" | "sm";
+
 function VariantFace({
   caption,
+  size,
   value,
   visual,
 }: {
   caption: string;
+  size?: VariantSize;
   value: string;
   visual: ReactNode;
 }) {
   return (
-    <span
-      className={cn(
-        // A hero tile square: the faces read as the lineup's own furniture
-        // rather than a third size on the surface. The 48px art inside leaves
-        // 4px for the pet's count badge to overhang into.
-        "flex size-16 shrink-0 flex-col items-center justify-center rounded-lg bg-card p-2 sm:size-18",
-        variantTriggerStates
-      )}
-    >
+    <span className={cn(variantFaceVariants({ size }), variantTriggerStates)}>
       {visual}
       <span className="sr-only">{`${caption} ${value}`}</span>
     </span>
@@ -650,22 +676,38 @@ function LineupSpeed({ value }: { value: string }) {
   );
 }
 
-function LineupPets({ pets }: { pets: string[] }) {
+function LineupPets({ pets, size }: { pets: string[]; size?: VariantSize }) {
   return (
     <VariantFace
       caption="สัตว์เลี้ยง"
+      size={size}
       value={pets.join(" หรือ ")}
-      visual={<PetSummary pets={pets} />}
+      visual={
+        <PetSummary className={variantArtVariants({ size })} pets={pets} />
+      }
     />
   );
 }
 
-function LineupFormation({ formation }: { formation: TargetFormation }) {
+function LineupFormation({
+  formation,
+  size,
+}: {
+  formation: TargetFormation;
+  size?: VariantSize;
+}) {
   return (
     <VariantFace
       caption="แผนการรบ"
+      size={size}
       value={formationLabel(formation)}
-      visual={<FormationPreview compact formation={formation} />}
+      visual={
+        <FormationPreview
+          className={variantArtVariants({ size })}
+          compact
+          formation={formation}
+        />
+      }
     />
   );
 }
