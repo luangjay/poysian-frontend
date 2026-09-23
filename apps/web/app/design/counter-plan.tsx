@@ -49,15 +49,26 @@ function TargetReference({ team }: { team: Team }) {
 
   return (
     <Item variant="muted">
-      {/* One column at every width: what it is, who it is, then who is in it.
+      {/* Stacked at the ends, side by side in the middle. Under md there is no
+          room for two columns and from lg the block is back in a 28rem
+          track, where stacking is what fits again. Between them sits one band
+          holding the page's full width with nothing to share it, which is
+          enough to seat the text beside the pictures rather than above
+          them.
+
           The label is a row of this grid rather than an ItemHeader beside it,
           because Item is a wrapping flex container and fit-content sizes one
           of those as if nothing wraps — a header as a second flex child got
           added to the pictures' width instead of stacking above them, and the
           block came out exactly that much too wide. One child, nothing to
-          sum. */}
-      <div className="grid w-full gap-3">
-        <p className="text-xs font-medium text-muted-foreground">
+          sum.
+
+          19rem is the pictures' column because it is what the first line of
+          them costs: the speed pill, a gap and the roster. A track that fits
+          those exactly is what makes the pet and the formation fall to a
+          second line instead of the roster falling on its own. */}
+      <div className="grid w-full gap-3 md:grid-cols-[minmax(14rem,1fr)_19rem] md:gap-x-4 lg:grid-cols-none">
+        <p className="text-xs font-medium text-muted-foreground md:col-span-2 lg:col-auto">
           กำลังแก้ทีมนี้
         </p>
         {/* The block is meant to end where the pictures do, and three things
@@ -67,7 +78,7 @@ function TargetReference({ team }: { team: Team }) {
             without spaces the condition is one unbreakable run whose
             min-content is wider than the roster, and a grid item's percentage
             min-width falls back to exactly that during track sizing. */}
-        <div className="grid w-0 min-w-full gap-1.5 [overflow-wrap:anywhere]">
+        <div className="grid w-0 min-w-full gap-1.5 [overflow-wrap:anywhere] md:col-start-1 lg:col-auto">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <p className="truncate font-medium" title={team.title}>
               {team.title}
@@ -78,23 +89,28 @@ function TargetReference({ team }: { team: Team }) {
             {team.condition}
           </p>
         </div>
-        {/* The roster with its speed above it, the way a lineup surface seats
-            the pill in its corner, and the two facts about the team stacked
-            off to the side rather than mixed in among its members. Stacking
-            them is also what fits: a single row of all five would not.
+        {/* Two groupings out of one markup. Stacked, it is the lineup surface
+            in miniature: the speed above the roster the way that surface seats
+            the pill in its corner, and the team's two other facts in a column
+            off to the side. In the side-by-side band the groups go `contents`
+            and their four children become one wrapping row — speed, roster,
+            pet, formation — which is the arrangement that pays for the height
+            the two columns cost.
 
-            justify-between because the block's width is set by the condition,
-            not by the pictures — Thai has no spaces to break at, so the text's
-            min-content is wider than the roster and no amount of intrinsic
-            sizing makes the block end where the pictures do. Spreading them
-            fills that width instead of leaving it trailing, and echoes the
-            lineup surface below: roster on the left, the two cells right. */}
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex flex-col items-start gap-2">
+            justify-between only where the groups survive, because there the
+            block's width is set by the condition rather than by the pictures:
+            Thai has no spaces to break at, so the text's min-content is wider
+            than the roster and spreading the two groups fills that width
+            instead of leaving it trailing. Flattened, end instead — the second
+            line lands under the roster rather than under the speed pill, which
+            is the surface's own arrangement again: pill off to one side, the
+            two cells below the faces. */}
+        <div className="flex flex-wrap items-start justify-between gap-3 md:col-start-2 md:justify-end lg:col-auto lg:justify-between">
+          <div className="flex flex-col items-start gap-2 md:contents lg:flex">
             <Lineup.Speed value={variants.speeds[0] ?? "ปกติ"} />
             <TeamHeroRail size="sm" team={team} />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 md:contents lg:flex">
             <PetCell pets={variants.petPackages[0] ?? [team.pet]} size="sm" />
             <Lineup.Formation
               formation={variants.formations[0] ?? "2-3"}
