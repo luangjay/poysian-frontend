@@ -18,6 +18,7 @@ import {
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { cn } from "@workspace/ui/lib/utils";
 import {
+  targetSpeeds,
   type PetPackage,
   type TargetFormation,
   type TargetVariants,
@@ -33,11 +34,6 @@ import {
 import { TeamTypeBadge } from "./team-card";
 import { VariantPopover } from "./variant-popover";
 
-const speedOptions: Array<TargetVariants["speeds"][number]> = [
-  "ปกติ",
-  "ช้า",
-  "เร็ว",
-];
 /** The order the game's own picker uses, which is also the sprite order. */
 const formationOptions: TargetFormation[] = ["3-2", "2-3", "4-1", "1-4"];
 
@@ -125,7 +121,7 @@ function TargetVariantDock({
                       }
                     }}
                   >
-                    {speedOptions.map((speed) => {
+                    {targetSpeeds.map((speed) => {
                       const available = variants.speeds.includes(speed);
                       return (
                         <FieldLabel

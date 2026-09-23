@@ -1,35 +1,30 @@
 import { Badge } from "@workspace/ui/components/badge";
-import { Item, ItemGroup, ItemHeader } from "@workspace/ui/components/item";
-import { Separator } from "@workspace/ui/components/separator";
+import { Item, ItemGroup } from "@workspace/ui/components/item";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  teamVariants,
-  type Hero,
-  type TargetFormation,
-  type Team,
-} from "./_data";
+import { teamVariants, type Hero, type Team } from "./_data";
 import { BackLink } from "./back-link";
 import { CounterHeroTile } from "./hero-detail-dialog";
-import {
-  formationLabel,
-  FormationPreview,
-  HeroPortrait,
-  Lineup,
-  PetChoice,
-} from "./lineup";
+import { HeroPortrait, Lineup, PetChoice } from "./lineup";
 import { SectionHeading } from "./section-heading";
 import { CounterTeamRow, TeamHeroRail, TeamTypeBadge } from "./team-card";
 import { VariantPopover } from "./variant-popover";
 
 /**
- * The pet and formation cells, defined once because the target reference and
- * the lineup under it both show them and both have to open the same way — the
- * pet cell especially, since a package's alternatives exist nowhere else on
- * the page. The formation's name lives in the popover rather than under the
- * sprite: a caption reading "หน้า 4 / หลัง 1" was wider than the art it
- * labelled and broke the rhythm of a row of tightly-captioned portraits.
+ * Opens only when there is something behind it. A package of one pet shows the
+ * same portrait in the popover that the cell already shows, so it stays a flat
+ * chip — no ring, no fill, and no focusable trigger announcing a view of
+ * nothing.
+ *
+ * The formation has no cell of its own for the same reason, one step further:
+ * the compact sprite is countable at 3rem — four red pips and one blue is four
+ * back and one front — and the full sprite's only extra is the game's slot
+ * numbering, which nothing here uses. So it is always just art.
  */
 function PetCell({ pets, size }: { pets: string[]; size?: "default" | "sm" }) {
+  if (pets.length < 2) {
+    return <Lineup.Pets pets={pets} size={size} />;
+  }
+
   return (
     <VariantPopover
       content={<PetChoice pets={pets} />}
@@ -41,63 +36,38 @@ function PetCell({ pets, size }: { pets: string[]; size?: "default" | "sm" }) {
   );
 }
 
-function FormationCell({
-  formation,
-  size,
-}: {
-  formation: TargetFormation;
-  size?: "default" | "sm";
-}) {
-  return (
-    <VariantPopover
-      align="end"
-      content={
-        <div className="grid justify-items-center gap-2">
-          <FormationPreview formation={formation} />
-          <p className="text-sm font-medium">{formationLabel(formation)}</p>
-        </div>
-      }
-      title="แผนการรบ"
-      triggerLabel="ดูแผนการรบ"
-    >
-      <Lineup.Formation formation={formation} size={size} />
-    </VariantPopover>
-  );
-}
-
 /**
- * The target: pictures on the left, words on the right. The speed pill leads
- * the picture column because that is where it sits on the lineup surface
- * below, which makes this read as a miniature of it — and because pictures
- * lead here while text leads on the target page, the two do not open on the
- * same shape.
- *
- * The label lives inside the surface rather than floating above it, which is
- * what ItemHeader is for — it takes a line of its own and leaves the two
- * columns the line below.
- *
- * What keeps it from reading as one of the counters further down is not its
- * shape but what a list item has and this does not: no rank, no arrow, no
- * link, and a muted fill instead of a card. Anatomy says "a team"; those four
- * say "pick me".
- *
- * Source order is the stacked order — name first, then the roster — with the
- * columns placed explicitly from sm, so neither reading compromises for the
- * other.
+ * The target at a glance, for the widths where the matchup cannot be a
+ * matchup. Under lg the two sides stack, and a stacked pair reads as "enemy
+ * first, plan second" — 450px of the thing you are trying to beat before the
+ * team that beats it. This says the same in about a fifth of the height, so
+ * the plan stays above the fold and the comparison waits for the room to do
+ * it properly.
  */
 function TargetReference({ team }: { team: Team }) {
   const variants = teamVariants(team);
-  const formation = variants.formations[0] ?? "2-3";
 
   return (
     <Item variant="muted">
-      <ItemHeader>
+      {/* One column at every width: what it is, who it is, then who is in it.
+          The label is a row of this grid rather than an ItemHeader beside it,
+          because Item is a wrapping flex container and fit-content sizes one
+          of those as if nothing wraps — a header as a second flex child got
+          added to the pictures' width instead of stacking above them, and the
+          block came out exactly that much too wide. One child, nothing to
+          sum. */}
+      <div className="grid w-full gap-3">
         <p className="text-xs font-medium text-muted-foreground">
           กำลังแก้ทีมนี้
         </p>
-      </ItemHeader>
-      <div className="grid w-full gap-x-6 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
-        <div className="grid gap-1.5 sm:col-start-2">
+        {/* The block is meant to end where the pictures do, and three things
+            are needed for that. `w-fit` on the wrapper asks for it; `w-0
+            min-w-full` stops the text counting toward the width it asks for;
+            and `overflow-wrap:anywhere` is what makes that stick for Thai —
+            without spaces the condition is one unbreakable run whose
+            min-content is wider than the roster, and a grid item's percentage
+            min-width falls back to exactly that during track sizing. */}
+        <div className="grid w-0 min-w-full gap-1.5 [overflow-wrap:anywhere]">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <p className="truncate font-medium" title={team.title}>
               {team.title}
@@ -108,18 +78,29 @@ function TargetReference({ team }: { team: Team }) {
             {team.condition}
           </p>
         </div>
+        {/* The roster with its speed above it, the way a lineup surface seats
+            the pill in its corner, and the two facts about the team stacked
+            off to the side rather than mixed in among its members. Stacking
+            them is also what fits: a single row of all five would not.
 
-        {/* One row: the speed it moves at, then who is in it, then how it
-            stands. The heroes and their pet sit together because the pet is
-            part of the roster; the rail's own px-3 is what sets that group
-            apart, so the gaps either side of it can stay even. */}
-        <div className="flex flex-wrap items-center gap-4 sm:col-start-1 sm:row-start-1">
-          <Lineup.Speed value={variants.speeds[0] ?? "ปกติ"} />
-          <div className="flex items-center gap-4">
-            <TeamHeroRail team={team} />
-            <PetCell pets={variants.petPackages[0] ?? [team.pet]} size="sm" />
+            justify-between because the block's width is set by the condition,
+            not by the pictures — Thai has no spaces to break at, so the text's
+            min-content is wider than the roster and no amount of intrinsic
+            sizing makes the block end where the pictures do. Spreading them
+            fills that width instead of leaving it trailing, and echoes the
+            lineup surface below: roster on the left, the two cells right. */}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex flex-col items-start gap-2">
+            <Lineup.Speed value={variants.speeds[0] ?? "ปกติ"} />
+            <TeamHeroRail size="sm" team={team} />
           </div>
-          <FormationCell formation={formation} size="sm" />
+          <div className="flex flex-col gap-2">
+            <PetCell pets={variants.petPackages[0] ?? [team.pet]} size="sm" />
+            <Lineup.Formation
+              formation={variants.formations[0] ?? "2-3"}
+              size="sm"
+            />
+          </div>
         </div>
       </div>
     </Item>
@@ -176,7 +157,6 @@ function OtherCounterTeams({
 }) {
   return (
     <section aria-labelledby="other-counters-heading" className="grid gap-4">
-      <Separator />
       <SectionHeading
         id="other-counters-heading"
         title="ทีมอื่น"
@@ -230,69 +210,104 @@ export function CounterPlan({
 
   return (
     <div className="grid gap-8">
-      <section aria-labelledby="counter-plan-title" className="grid gap-4">
-        <BackLink href={`/design?target=${target.id}`} label="กลับ" />
-        <TargetReference team={target} />
+      {/* The back link joins the grid so the target can start level with it
+          rather than below everything. The target spans all three rows on the
+          right, `items-start` keeping it at the top instead of stretching, so
+          the left column's rows are free to size to their own content.
 
-        <div className="grid gap-2.5">
-          <h1
-            id="counter-plan-title"
-            className="text-2xl font-semibold tracking-tight"
-          >
-            {team.title}
-          </h1>
-          {team.tags?.length ? (
-            <div className="flex flex-wrap gap-2">
-              {team.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  className="h-6 rounded-md px-2.5 text-sm"
-                  variant="outline"
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          ) : null}
-          <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
-            {team.condition}
-          </p>
+          Source order is the stacked order — back, target, then the counter —
+          with the columns placed from lg, so the phone still meets the target
+          before the plan that answers it. */}
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_28rem] lg:gap-x-8">
+        <BackLink
+          className="lg:col-start-1 lg:row-start-1"
+          href={`/design?target=${target.id}`}
+          label="กลับ"
+        />
+
+        <div className="w-fit lg:col-start-2 lg:row-start-1 lg:row-end-4 lg:justify-self-end">
+          <TargetReference team={target} />
         </div>
 
-        {/* The lineup's own size, not the page's. Uncapped it stretched to the
-            container on a desktop and left the rows stranded as a 24rem island
-            with the variant strip pinned a screen away; 32rem is rows + gap +
-            strip + padding, so the rail meets the strip with nothing between. */}
-        <Lineup.Surface>
-          <Lineup.Rows HeroTile={CounterHeroTile} loading="eager" team={team} />
-          {/* Read-only, but the same hover-or-dialog surface the target
-              page's pickers use — a cell that opens is a cell that opens,
-              whether or not there is anything to choose. */}
-          <Lineup.Variants
-            speed={
-              <VariantPopover
-                align="start"
-                content={<SpeedOrder heroes={speedLineup} size="sm" />}
-                dialogContent={<SpeedOrder heroes={speedLineup} />}
-                title="ลำดับความเร็ว"
-                triggerLabel="ดูลำดับความเร็ว"
-              >
-                <Lineup.Speed value={variants.speeds[0] ?? "ปกติ"} />
-              </VariantPopover>
-            }
-            pets={<PetCell pets={pets} />}
-            formation={
-              <FormationCell formation={variants.formations[0] ?? "2-3"} />
-            }
-          />
-        </Lineup.Surface>
+        {/* `lg:contents` so the section keeps its label without becoming a
+            cell — its two blocks place themselves in the grid directly. */}
+        <section
+          aria-labelledby="counter-plan-title"
+          className="grid gap-4 lg:contents"
+        >
+          <div className="grid gap-2.5 lg:col-start-1 lg:row-start-2">
+            <h1
+              id="counter-plan-title"
+              className="text-2xl font-semibold tracking-tight"
+            >
+              {team.title}
+            </h1>
+            {team.tags?.length ? (
+              <div className="flex flex-wrap gap-2">
+                {team.tags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    className="h-6 rounded-md px-2.5 text-sm"
+                    variant="outline"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
+            <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+              {team.condition}
+            </p>
+          </div>
 
-        {/* The speed order moved into the strip's own cell, so what is left
-            under the artwork is who worked this out. */}
-        <p className="text-sm text-muted-foreground">
-          โดย <span className="font-medium text-foreground">BelXenonZ</span>
-        </p>
-      </section>
+          {/* The notes are a caption on the artwork, not a third thing beside
+              it, so they sit closer to the lineup than the lineup sits to the
+              text above it. */}
+          <div className="grid gap-2 lg:col-start-1 lg:row-start-3">
+            <Lineup.Surface>
+              <Lineup.Rows
+                HeroTile={CounterHeroTile}
+                loading="eager"
+                team={team}
+              />
+              {/* Read-only, but the same hover-or-dialog surface the target
+                  page's pickers use — a cell that opens is a cell that opens,
+                  whether or not there is anything to choose. */}
+              <Lineup.Variants
+                speed={
+                  <VariantPopover
+                    align="start"
+                    content={<SpeedOrder heroes={speedLineup} size="sm" />}
+                    dialogContent={<SpeedOrder heroes={speedLineup} />}
+                    title="ลำดับความเร็ว"
+                    triggerLabel="ดูลำดับความเร็ว"
+                  >
+                    <Lineup.Speed value={variants.speeds[0] ?? "ปกติ"} />
+                  </VariantPopover>
+                }
+                pets={<PetCell pets={pets} />}
+                formation={
+                  <Lineup.Formation
+                    formation={variants.formations[0] ?? "2-3"}
+                  />
+                }
+              />
+            </Lineup.Surface>
+
+            {/* The portraits open a dialog and nothing about a portrait says
+                so — a hover lift answers a pointer, but touch gets no such
+                hint, so the affordance is spelled out. Paired with the credit
+                because both are notes about the lineup, not part of it. */}
+            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1.5 text-sm text-muted-foreground">
+              <p>คลิกที่ตัวละครเพื่อดูรายละเอียด</p>
+              <p>
+                โดย{" "}
+                <span className="font-medium text-foreground">BelXenonZ</span>
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
 
       {others.length ? (
         <OtherCounterTeams ranked={others} target={target} />

@@ -136,7 +136,13 @@ function TeamTagRow({
  * Shared so the counter list and the target it counters cannot drift apart —
  * the two sit a few hundred pixels from each other on the same page.
  */
-export function TeamHeroRail({ team }: { team: Team }) {
+export function TeamHeroRail({
+  size = "row",
+  team,
+}: {
+  size?: "sm" | "row";
+  team: Team;
+}) {
   const heroes = [
     ...team.heroes.filter((hero) => hero.row === "front"),
     ...team.heroes.filter((hero) => hero.row === "back"),
@@ -151,7 +157,7 @@ export function TeamHeroRail({ team }: { team: Team }) {
         className="absolute inset-x-0 top-[calc(50%-0.5625rem)] h-1.5 rounded-full bg-linear-to-r from-transparent via-muted-foreground/20 to-transparent"
       />
       {heroes.map((hero) => (
-        <HeroPortrait key={hero.name} hero={hero} rowBadge size="row" />
+        <HeroPortrait key={hero.name} hero={hero} rowBadge size={size} />
       ))}
     </div>
   );

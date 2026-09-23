@@ -116,7 +116,15 @@ function HeroDetailTile({
       <DialogTrigger
         aria-label={`ดูรายละเอียด ${hero.name}`}
         className={cn(
-          "rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+          // A lift on hover, because nothing else says this portrait opens.
+          // The enemy's heroes are not inspectable — their role guidance is
+          // how to play them, and you do not play them — so the two sides of
+          // a matchup differ here on purpose. That difference is invisible
+          // while both are inert art; it should at least answer a pointer.
+          //
+          // Tailwind v4 lifts with `translate`, not `transform`, so that is
+          // what transitions — `transition-transform` animates nothing here.
+          "rounded-xl transition-[translate] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 motion-safe:duration-150 motion-safe:hover:-translate-y-0.5 motion-reduce:transition-none",
           className
         )}
       >

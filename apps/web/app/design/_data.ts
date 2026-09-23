@@ -23,6 +23,12 @@ export const targetFormations = [
 
 export type TargetFormation = (typeof targetFormations)[number]["value"];
 
+/** The order the game's own picker uses. Shared so a read-only view of the
+ *  scale and the picker itself cannot disagree about what the scale is. */
+export const targetSpeeds = ["ปกติ", "ช้า", "เร็ว"] as const;
+
+export type TargetSpeed = (typeof targetSpeeds)[number];
+
 export type PetPackage =
   | [string]
   | [string, string]
@@ -43,7 +49,7 @@ export type SkillOrderSet =
   | [SkillOrder, SkillOrder, SkillOrder];
 
 export type TargetVariants = {
-  speeds: Array<"เร็ว" | "ปกติ" | "ช้า">;
+  speeds: TargetSpeed[];
   formations: TargetFormation[];
   petPackages: PetPackage[];
 };

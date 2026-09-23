@@ -197,7 +197,7 @@ function LineupSurface({
         // hands it the card, the target page hands it a 28rem grid track.
         // Capping here left a team card with an empty strip beside its own
         // lineup on any screen wider than the cap.
-        "grid w-full gap-4 overflow-hidden rounded-xl bg-muted p-2.5 ring-1 ring-foreground/10 [--card-spacing:--spacing(3)]",
+        "grid w-full gap-4 overflow-hidden rounded-xl border bg-muted p-2.5 [--card-spacing:--spacing(3)]",
         // Only a lineup carrying variants gets the floor; a team card's
         // surface is still sized by its rows alone.
         "has-[[data-slot=lineup-variants]]:min-h-60",
@@ -292,7 +292,7 @@ function LineupRows({
                 two rows stop lining up. */}
             <div
               className={cn(
-                "relative flex min-w-0 flex-1 justify-center pr-5 sm:pr-6",
+                "relative flex min-w-0 flex-1 justify-center pr-4",
                 heroes.length === 2 && "gap-6"
               )}
             >
@@ -579,10 +579,20 @@ function LineupVariants({
  * `showValue` drops the printed line where the art already is the value. The
  * group-* states only bite when a selectable cell wraps this in a trigger.
  */
+/**
+ * A cell should look openable only when it is, and whether it is is data — a
+ * team with no recorded speed order leaves that pill inert wherever it
+ * appears. So the resting edge is what differs, not a hover, which touch never
+ * gets. `in-[.group]` scopes it to an ancestor trigger.
+ *
+ * The edge is a border on both sides of that, solid or dashed, rather than a
+ * ring on one: a ring is a box-shadow painted outside the border box, so a
+ * ringed cell measured 74px beside a bordered one at 72 and the strip stopped
+ * lining up. Only `border` can be dashed in any case.
+ */
 const variantTriggerStates = cn(
-  "ring-1 ring-foreground/10 transition-shadow motion-safe:duration-150 motion-reduce:transition-none",
-  // Only bite when a selectable cell is wrapped in a trigger.
-  "group-hover:shadow-md group-focus-visible:ring-3 group-focus-visible:ring-ring/50"
+  "transition-shadow motion-safe:duration-150 motion-reduce:transition-none",
+  "group-hover:shadow-sm group-focus-visible:ring-3 group-focus-visible:ring-ring/50"
 );
 
 /**
@@ -592,7 +602,18 @@ const variantTriggerStates = cn(
  * a row portrait, which leaves the p-2 wrapping 2.5rem of art with no slack.
  */
 const variantFaceVariants = cva(
-  "flex shrink-0 flex-col items-center justify-center rounded-lg bg-card p-2",
+  // Every cell is a card on the surface; the edge is what says whether there
+  // is anything behind it. A ring is the hairline this system gives an
+  // elevated surface, so it reads as a thing to open; a dashed border is what
+  // Empty uses for a slot with nothing asserted in it, over a fill there too.
+  // Leaving the inert ones unfilled read as hollow rather than quiet.
+  //
+  // Dashed by `border`, the way Empty marks a slot with nothing asserted in
+  // it — in this design system `outline` only ever suppresses a focus ring.
+  // The filled state hides that border rather than dropping it, so the art
+  // keeps one box either way, and p-1.5 is what still leaves the 3rem of art
+  // room once the border has taken its 2px.
+  "flex shrink-0 flex-col items-center justify-center rounded-lg border border-dashed bg-card p-1.5 in-[.group]:border-solid",
   {
     variants: {
       size: { default: "size-16 sm:size-18", sm: "size-14" },
@@ -664,6 +685,9 @@ function LineupSpeed({ value }: { value: string }) {
     <span
       className={cn(
         "flex items-center gap-1.5 rounded-full bg-card/85 px-2 py-1 backdrop-blur-sm",
+        // Same rule as the cells: drawn when it only states a value, filled
+        // when there is an order behind it.
+        "border border-dashed in-[.group]:border-solid",
         variantTriggerStates
       )}
     >

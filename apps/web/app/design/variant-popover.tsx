@@ -33,15 +33,16 @@ import {
  * can act like a sheet, but a strip of options has one right width and a
  * 607px one at 639px only spreads three words across a screen.
  *
- * A cell whose surface has to be wider says which size it is, rather than
- * being handed a class to paste onto the card: the width is a property of the
- * popover, not a detail of the caller's markup, and a prop that forwards a
- * className lets a caller reach past the component into a part of it.
- *
  * `dialogContent` exists because the two surfaces are not the same size: the
  * hover card is a fixed 16rem beside the cell, the dialog is most of a phone.
  * A cell that wants to spend that room differently says so; one that does not
  * says nothing and gets the same content in both.
+ *
+ * A cell whose surface has to be wider says which size it is, rather than
+ * being handed a class to paste onto the card: the width is a property of the
+ * popover, not a detail of the caller's markup, and a prop that forwards a
+ * className lets a caller reach past the component into a part of it.
+
  */
 /** `wide` is for a cell whose surface is a gallery rather than a few options —
  *  the pet packages need a third one visible to read as a list. */
