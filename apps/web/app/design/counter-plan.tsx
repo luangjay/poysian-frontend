@@ -15,6 +15,13 @@ import { VariantPopover } from "./variant-popover";
  * chip — no ring, no fill, and no focusable trigger announcing a view of
  * nothing.
  *
+ * align="end" because the cell is the right-most thing in whatever holds it —
+ * the surface's variants column, the reference block's pair. Centred, a 16rem
+ * card on a 4.5rem cell hangs 6rem past it either way, which in the reference
+ * block means past the page's content edge. Anchoring the card's right edge to
+ * the cell's opens it up and to the left, into room that exists. The speed
+ * pill takes align="start" for the mirror of the same reason.
+ *
  * The formation has no cell of its own for the same reason, one step further:
  * the compact sprite is countable at 3rem — four red pips and one blue is four
  * back and one front — and the full sprite's only extra is the game's slot
@@ -27,6 +34,7 @@ function PetCell({ pets, size }: { pets: string[]; size?: "default" | "sm" }) {
 
   return (
     <VariantPopover
+      align="end"
       content={<PetChoice pets={pets} />}
       title="สัตว์เลี้ยง"
       triggerLabel="ดูสัตว์เลี้ยงทั้งหมด"
@@ -47,11 +55,19 @@ function PetCell({ pets, size }: { pets: string[]; size?: "default" | "sm" }) {
 function TargetReference({ team }: { team: Team }) {
   const variants = teamVariants(team);
 
+  // h-full so the block fills the row it is stretched over at lg. Nothing
+  // inside it grows — the surplus lands under the pictures, which is where a
+  // reference block can afford it.
   return (
-    <Item variant="muted">
-      {/* Stacked at the ends, side by side in the middle. Under sm there is
-          no room for two columns and from lg the block is back in a 28rem
-          track, where stacking is what fits again.
+    <Item className="lg:h-full" variant="muted">
+      {/* Stacked at the ends, side by side in the middle. Seating the text
+          beside the pictures costs 516 — 14rem of text, a gap, and the 276 the
+          pictures come to — and that is the whole rule, here and everywhere
+          else on the route a team is drawn: a browse card at 300 stacks, a
+          counter row at 960 does not. Under sm the block is under 516; from lg
+          it is back in a 28rem track and under it again, which is what
+          lg:grid-cols-none is for. Widen that track past 516 and this is the
+          line to revisit.
 
           The label rides inside the identity column rather than being an
           ItemHeader or a row of its own. As an ItemHeader it was a second flex
@@ -257,11 +273,17 @@ export function CounterPlan({
             a reference block has no business coming before it, in reading
             order or in the tab ring. `order-first` is what still lets the
             phone meet the target before the plan that answers it; from lg
-            both are placed cells and order has nothing left to say. */}
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,28rem)_auto_auto] lg:justify-between lg:gap-x-8 lg:gap-y-2">
+            both are placed cells and order has nothing left to say.
+
+            gap-6 stacked, which is only below lg — a step above the gap-4 the
+            counter uses between its own parts and a step below the gap-8
+            between page sections. At gap-4 it matched the counter's internals
+            exactly, so the target read as one more item in the plan's stack
+            rather than the other half of a matchup. */}
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,28rem)_auto_auto] lg:justify-between lg:gap-x-8 lg:gap-y-2">
           <section
             aria-labelledby="counter-plan-title"
-            className="flex flex-col gap-4 lg:contents"
+            className="order-3 flex flex-col gap-4 lg:order-none lg:contents"
           >
             <div className="flex flex-col gap-2.5 lg:col-start-1 lg:row-start-1 lg:mb-2">
               <h1
@@ -288,9 +310,9 @@ export function CounterPlan({
               </p>
             </div>
 
-            {/* The notes are a caption on the artwork, not a third thing beside
-                it, so they sit closer to the lineup than the lineup sits to
-                the text above it. */}
+            {/* The note is a caption on the artwork, not a third thing beside
+                it, so it sits closer to the lineup than the lineup sits to the
+                text above it. */}
             <div className="flex flex-col gap-2 lg:contents">
               <Lineup.Surface className="lg:col-start-1 lg:row-start-2">
                 <Lineup.Rows
@@ -324,15 +346,10 @@ export function CounterPlan({
 
               {/* The portraits open a dialog and nothing about a portrait says
                 so — a hover lift answers a pointer, but touch gets no such
-                hint, so the affordance is spelled out. Paired with the credit
-                because both are notes about the lineup, not part of it. */}
-              <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1.5 text-sm text-muted-foreground lg:col-start-1 lg:row-start-3">
-                <p>คลิกที่ตัวละครเพื่อดูรายละเอียด</p>
-                <p>
-                  โดย{" "}
-                  <span className="font-medium text-foreground">BelXenonZ</span>
-                </p>
-              </div>
+                hint, so the affordance is spelled out. */}
+              <p className="text-sm text-muted-foreground lg:col-start-1 lg:row-start-3">
+                คลิกที่ตัวละครเพื่อดูรายละเอียด
+              </p>
             </div>
           </section>
 
@@ -341,17 +358,37 @@ export function CounterPlan({
               it to a screen reader, so this is the visual half of that and
               nothing more.
 
-              Row 2 is the lineup's row, and since the target is bottom-aligned
-              to the same row the two blocks occupy near enough the same band —
-              centring on the row centres it on both. */}
-          <span
-            aria-hidden="true"
-            className="hidden text-xs font-medium tracking-[0.25em] text-muted-foreground uppercase lg:col-start-2 lg:row-start-2 lg:block lg:self-center"
-          >
-            VS
-          </span>
+              The rule is what makes it the join rather than a third column.
+              justify-between spends the row's leftover on the gutters, so the
+              mark sits about 78px from either block — far enough to belong to
+              neither. It fades out at both ends instead of ruling the full
+              height: the pairing needs anchoring, not a partition, and a
+              gradient that dissolves is the lineup's own hero rail again.
 
-          <div className="order-first w-full lg:order-none lg:col-start-3 lg:row-start-1 lg:row-end-3 lg:w-fit lg:max-w-md lg:self-end">
+              Stacked it is the same element turned ninety degrees, between the
+              target and the plan. Reading order already puts them in sequence
+              there, but sequence is not opposition, and a stacked reader
+              otherwise never gets the framing the side-by-side one does.
+
+              self-stretch over row 2, which is the lineup's row. The target is
+              stretched over that same row, so the two blocks span exactly the
+              same band and the mark lands centred on both.
+
+              The explicit order is because the target is placed last in source
+              — the counter owns the h1 and leads — while stacked it has to
+              come first, with the mark between the two. */}
+          <div
+            aria-hidden="true"
+            className="order-2 flex items-center gap-3 lg:order-none lg:col-start-2 lg:row-start-2 lg:flex-col lg:self-stretch"
+          >
+            <span className="h-px flex-1 bg-linear-to-r from-transparent to-border lg:h-auto lg:w-px lg:bg-linear-to-b" />
+            <span className="text-xs font-medium tracking-[0.25em] text-muted-foreground uppercase">
+              VS
+            </span>
+            <span className="h-px flex-1 bg-linear-to-r from-border to-transparent lg:h-auto lg:w-px lg:bg-linear-to-b" />
+          </div>
+
+          <div className="order-1 w-full lg:order-none lg:col-start-3 lg:row-start-2 lg:w-fit lg:max-w-md lg:self-stretch">
             <TargetReference team={target} />
           </div>
         </div>

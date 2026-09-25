@@ -94,7 +94,10 @@ function TargetVariantDock({
   onPetPackageChange,
 }: TargetVariantDockProps) {
   return (
-    <section aria-label="รูปแบบทีมเป้าหมาย" className={className}>
+    <section
+      aria-label="รูปแบบทีมเป้าหมาย"
+      className={cn("flex flex-col gap-2", className)}
+    >
       <Lineup.Surface>
         <Lineup.Rows
           loading="eager"
@@ -325,6 +328,20 @@ function TargetVariantDock({
           }
         />
       </Lineup.Surface>
+      {/* The cells open pickers and none of them looks like it does — the
+          same gap the counter page's portraits have. An invitation rather than
+          an instruction, because swapping variants is the one thing on this
+          route a reader does for curiosity: nothing breaks, nothing is saved,
+          and the lineup answers immediately.
+
+          No object, either. Naming the three cells spent a line repeating the
+          captions they already carry, and they are the only things in the
+          surface that can be clicked. The label carries the weight so the line
+          reads as an offer instead of disappearing into the caption slot. */}
+      <p className="text-sm text-muted-foreground">
+        <span className="font-medium text-foreground">Tip:</span>{" "}
+        ลองสลับรูปแบบทีมดูสิ
+      </p>
     </section>
   );
 }
