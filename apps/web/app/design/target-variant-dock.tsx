@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { CheckIcon } from "@phosphor-icons/react";
 import { Badge } from "@workspace/ui/components/badge";
 import {
@@ -329,13 +329,7 @@ function TargetVariantDock({
   );
 }
 
-export function TargetSummary({
-  backLink,
-  team,
-}: {
-  backLink: ReactNode;
-  team: Team;
-}) {
+export function TargetSummary({ team }: { team: Team }) {
   const variants: TargetVariants = team.variants ?? {
     speeds: ["ปกติ"],
     formations: ["2-3"],
@@ -354,18 +348,15 @@ export function TargetSummary({
   return (
     <section
       aria-labelledby="target-summary-title"
-      className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_28rem] lg:gap-x-8 lg:gap-y-3"
+      className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_28rem] lg:gap-x-8"
     >
-      {/* A cell of its own in the text column's first row, rather than a
-          zero-height box overhanging it. The lineup spans both rows, so the
-          top of the surface still lines up with the top of the link. */}
-      <div className="lg:col-start-1 lg:row-start-1">{backLink}</div>
       {/* Flush left, on the same edge as the back link above it and the
-          counter rows below. What remains is a measure cap, which is the
-          text's own business: max-w-prose while the section is one column,
-          max-w-sm from lg where a ragged edge partway across the 1fr track is
-          what would look unplanned. */}
-      <div className="grid max-w-prose gap-3 lg:col-start-1 lg:row-start-2 lg:max-w-sm">
+          counter rows below. The identity and lineup now share the first row,
+          so their top edges establish the summary together. What remains is a
+          measure cap, which is the text's own business: max-w-prose while the
+          section is one column, max-w-sm from lg where a ragged edge partway
+          across the 1fr track is what would look unplanned. */}
+      <div className="grid max-w-prose gap-3 lg:max-w-sm">
         {/* Plain, not tinted by team type: the badge below already spends
             that colour on the type, and two different facts wearing one colour
             8px apart read as one. */}
@@ -401,7 +392,7 @@ export function TargetSummary({
         </p>
       </div>
       <TargetVariantDock
-        className="lg:col-start-2 lg:row-start-1 lg:row-end-3"
+        className="lg:col-start-2 lg:row-start-1"
         team={team}
         variants={variants}
         selectedSpeed={selectedSpeed}

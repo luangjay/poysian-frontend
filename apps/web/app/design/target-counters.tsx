@@ -20,14 +20,10 @@ export function TargetCounters({
 }) {
   return (
     <div className="grid gap-8">
-      {/* The link is a cell of the summary's own grid, so the top of the page
-          still belongs to the lineup without anything overhanging to get it
-          there. */}
-      <TargetSummary
-        key={target.id}
-        backLink={<BackLink href="/design" label="กลับ" />}
-        team={target}
-      />
+      <div className="grid gap-4">
+        <BackLink href="/design" label="กลับ" />
+        <TargetSummary key={target.id} team={target} />
+      </div>
       <section aria-labelledby="saved-counters-heading" className="grid gap-4">
         <SectionHeading
           id="saved-counters-heading"

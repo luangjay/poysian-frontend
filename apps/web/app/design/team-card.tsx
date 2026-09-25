@@ -137,9 +137,11 @@ function TeamTagRow({
  * the two sit a few hundred pixels from each other on the same page.
  */
 export function TeamHeroRail({
+  className,
   size = "row",
   team,
 }: {
+  className?: string;
   size?: "sm" | "row";
   team: Team;
 }) {
@@ -151,7 +153,12 @@ export function TeamHeroRail({
   return (
     // No width, so `px` is a real knob: it widens the group rather than
     // squeezing `shrink-0` portraits, and it is how far the rail fades.
-    <div className="relative flex shrink-0 items-center gap-2 px-3 lg:gap-3 lg:px-6">
+    <div
+      className={cn(
+        "relative flex shrink-0 items-center gap-2 px-3 lg:gap-3 lg:px-6",
+        className
+      )}
+    >
       <span
         aria-hidden="true"
         className="absolute inset-x-0 top-[calc(50%-0.5625rem)] h-1.5 rounded-full bg-linear-to-r from-transparent via-muted-foreground/20 to-transparent"
