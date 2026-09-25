@@ -44,7 +44,7 @@ const heroRarityBackgroundSrcByRarity: Record<Hero["rarity"], string> = {
  * space for a full one — and each variant carries that same step.
  */
 const heroPortraitVariants = cva(
-  "grid min-w-0 shrink-0 justify-items-center gap-0.5 text-center",
+  "flex min-w-0 shrink-0 flex-col items-center gap-0.5 text-center",
   {
     variants: {
       size: {
@@ -471,7 +471,7 @@ export function PetChoice({ pets }: { pets: string[] }) {
     // A full package is five: the lead pet over two rows of two. The gaps are
     // picked so that case measures exactly 10.5rem tall — 72 + 12 + (40 + 4 +
     // 40) — which is what the picker's cells size to.
-    <div className="mx-auto grid w-full max-w-28 justify-items-center gap-3 text-center">
+    <div className="mx-auto flex w-full max-w-28 flex-col items-center gap-3 text-center">
       <PetPortrait pet={primaryPet} size="primary" />
       {companionPets.length ? (
         <div

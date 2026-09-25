@@ -61,11 +61,11 @@ function TargetReference({ team }: { team: Team }) {
           a full row of height for eleven characters, and pushed the pictures
           down a row for nothing.
 
-          content-start because that identity column is a grid stretched to the
-          pictures' height, and auto rows under the default align-content take
-          that surplus and spread themselves through it. That is where the text
-          was getting its extra 18px a line — not a decision, just rows growing
-          into room they were handed.
+          The identity column is a flex column partly for that reason: it gets
+          stretched to the pictures' height, and as a grid its auto rows took
+          that surplus and spread themselves through it, which is where the
+          text was getting an extra 18px a line. A flex column does not stretch
+          along its main axis, so there is nothing to undo.
 
           The pictures' track is auto, which is the 276 they cost. A fixed
           track only ever guessed at that, and the wrong guess wrapped
@@ -85,11 +85,11 @@ function TargetReference({ team }: { team: Team }) {
             track absorbs the slack and the pictures pin right by being the
             last track; stacked there is no second track, so the slack is the
             row's own and the pictures take the middle of it. */}
-        <div className="grid w-0 min-w-full content-start gap-3 [overflow-wrap:anywhere] sm:col-start-1 lg:col-auto">
+        <div className="flex w-0 min-w-full flex-col gap-3 [overflow-wrap:anywhere] sm:col-start-1 lg:col-auto">
           <p className="text-xs font-medium text-muted-foreground">
             กำลังแก้ทีมนี้
           </p>
-          <div className="grid gap-1.5">
+          <div className="flex flex-col gap-1.5">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <p className="truncate font-medium" title={team.title}>
                 {team.title}
@@ -189,7 +189,10 @@ function OtherCounterTeams({
   target: Team;
 }) {
   return (
-    <section aria-labelledby="other-counters-heading" className="grid gap-4">
+    <section
+      aria-labelledby="other-counters-heading"
+      className="flex flex-col gap-4"
+    >
       <SectionHeading
         id="other-counters-heading"
         title="ทีมอื่น"
@@ -246,8 +249,8 @@ export function CounterPlan({
     .filter((entry) => entry.team.id !== team.id);
 
   return (
-    <div className="grid gap-8">
-      <div className="grid gap-4">
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-4">
         <BackLink href={`/design?target=${target.id}`} label="กลับ" />
 
         {/* The counter leads in source because its title is the page's h1 and
@@ -258,9 +261,9 @@ export function CounterPlan({
         <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,28rem)_auto_auto] lg:justify-between lg:gap-x-8 lg:gap-y-2">
           <section
             aria-labelledby="counter-plan-title"
-            className="grid gap-4 lg:contents"
+            className="flex flex-col gap-4 lg:contents"
           >
-            <div className="grid gap-2.5 lg:col-start-1 lg:row-start-1 lg:mb-2">
+            <div className="flex flex-col gap-2.5 lg:col-start-1 lg:row-start-1 lg:mb-2">
               <h1
                 id="counter-plan-title"
                 className="text-2xl font-semibold tracking-tight"
@@ -288,7 +291,7 @@ export function CounterPlan({
             {/* The notes are a caption on the artwork, not a third thing beside
                 it, so they sit closer to the lineup than the lineup sits to
                 the text above it. */}
-            <div className="grid gap-2 lg:contents">
+            <div className="flex flex-col gap-2 lg:contents">
               <Lineup.Surface className="lg:col-start-1 lg:row-start-2">
                 <Lineup.Rows
                   HeroTile={CounterHeroTile}

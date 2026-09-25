@@ -356,11 +356,11 @@ export function TargetSummary({ team }: { team: Team }) {
           measure cap, which is the text's own business: max-w-prose while the
           section is one column, max-w-sm from lg where a ragged edge partway
           across the 1fr track is what would look unplanned. */}
-      <div className="grid max-w-prose gap-3 lg:max-w-sm">
+      <div className="flex max-w-prose flex-col gap-3 lg:max-w-sm">
         {/* Plain, not tinted by team type: the badge below already spends
             that colour on the type, and two different facts wearing one colour
             8px apart read as one. */}
-        <div className="grid gap-1">
+        <div className="flex flex-col gap-1">
           <p className="text-xs font-medium text-muted-foreground">
             ทีมเป้าหมาย
           </p>

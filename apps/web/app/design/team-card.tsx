@@ -202,7 +202,7 @@ export function CounterTeamRow({
           <span className="shrink-0 text-sm leading-snug font-semibold text-muted-foreground tabular-nums">
             {rank}
           </span>
-          <div className="grid min-w-0 gap-1">
+          <div className="flex min-w-0 flex-col gap-1">
             <ItemTitle title={team.title}>{team.title}</ItemTitle>
             <ItemDescription title={team.condition}>
               {team.condition}

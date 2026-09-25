@@ -19,12 +19,15 @@ export function TargetCounters({
   target: Team;
 }) {
   return (
-    <div className="grid gap-8">
-      <div className="grid gap-4">
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-4">
         <BackLink href="/design" label="กลับ" />
         <TargetSummary key={target.id} team={target} />
       </div>
-      <section aria-labelledby="saved-counters-heading" className="grid gap-4">
+      <section
+        aria-labelledby="saved-counters-heading"
+        className="flex flex-col gap-4"
+      >
         <SectionHeading
           id="saved-counters-heading"
           title="ทีมแก้ที่บันทึกไว้"

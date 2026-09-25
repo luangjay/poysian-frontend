@@ -111,7 +111,7 @@ export function TargetFilterPanel({
   const tagsAnchor = useComboboxAnchor();
 
   return (
-    <div className="grid gap-4 rounded-2xl border bg-card p-4">
+    <div className="flex flex-col gap-4 rounded-2xl border bg-card p-4">
       {/* The header's search button is a link to this field, so it has to
           clear the sticky header when the browser scrolls it into view. */}
       <InputGroup className="h-9 scroll-mt-(--design-header-block-size) rounded-xl">
@@ -131,8 +131,8 @@ export function TargetFilterPanel({
         />
       </InputGroup>
 
-      <div className="grid gap-3 md:flex md:items-end">
-        <div className="order-2 grid min-w-0 gap-2 md:order-0 md:flex-1">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end">
+        <div className="order-2 flex min-w-0 flex-col gap-2 md:order-0 md:flex-1">
           <p className="text-xs font-medium text-muted-foreground">ประเภททีม</p>
           <div className="flex flex-wrap items-center gap-2">
             <ToggleGroup
@@ -171,7 +171,7 @@ export function TargetFilterPanel({
           </div>
         </div>
 
-        <div className="order-1 grid gap-2 md:order-0 md:max-w-56 md:flex-1 md:shrink-0 lg:max-w-68">
+        <div className="order-1 flex flex-col gap-2 md:order-0 md:max-w-56 md:flex-1 md:shrink-0 lg:max-w-68">
           <p className="text-xs font-medium text-muted-foreground">แท็กทีม</p>
           <Combobox
             multiple

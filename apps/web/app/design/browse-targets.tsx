@@ -26,7 +26,7 @@ export function BrowseTargets({ targets }: { targets: Team[] }) {
   return (
     <section
       aria-labelledby="targets-heading"
-      className="grid scroll-mt-(--design-header-block-size) gap-4"
+      className="flex scroll-mt-(--design-header-block-size) flex-col gap-4"
     >
       <SectionHeading
         level={1}

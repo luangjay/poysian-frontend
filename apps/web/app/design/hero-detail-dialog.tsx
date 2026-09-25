@@ -137,7 +137,7 @@ function HeroDetailTile({
               className="w-24 [&>span:last-child]:hidden"
               hero={hero}
             />
-            <div className="grid min-w-0 gap-2">
+            <div className="flex min-w-0 flex-col gap-2">
               <DialogTitle className="text-2xl leading-tight font-semibold tracking-tight">
                 {hero.name}
               </DialogTitle>
@@ -192,7 +192,7 @@ function HeroDetailTile({
           ))}
         </div>
         <section className="grid overflow-hidden rounded-xl border sm:h-40 sm:grid-cols-[minmax(15rem,18rem)_minmax(0,1fr)]">
-          <div className="grid content-center gap-3 bg-muted/30 p-4 sm:border-r">
+          <div className="flex flex-col justify-center gap-3 bg-muted/30 p-4 sm:border-r">
             {equipmentSlotGroups.map((group) => (
               <div
                 key={group.label}
@@ -236,7 +236,7 @@ function HeroDetailTile({
               </div>
             ))}
           </div>
-          <div className="grid min-h-0 content-start gap-3 overflow-y-auto p-4 text-sm leading-relaxed">
+          <div className="flex min-h-0 flex-col gap-3 overflow-y-auto p-4 text-sm leading-relaxed">
             <p>{guidance.purpose}</p>
             <p>
               <span className="font-medium">แนวทาง: </span>

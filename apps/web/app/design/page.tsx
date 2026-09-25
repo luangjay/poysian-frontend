@@ -74,7 +74,7 @@ export default async function DesignPage({
       {/* Three views, named rather than derived: which one you get is the
           whole of what the query string decides, and it is decided here
           instead of inside a component that takes every view's props. */}
-      <main id="content" className="container grid gap-8 pt-6 pb-8">
+      <main id="content" className="container flex flex-col gap-8 pt-6 pb-8">
         {counter && target ? (
           <CounterPlan counters={counters} target={target} team={counter} />
         ) : target ? (

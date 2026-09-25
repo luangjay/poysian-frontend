@@ -43,7 +43,7 @@ export function SectionHeading({
 
   return (
     <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-      <div className="grid gap-1.5">
+      <div className="flex flex-col gap-1.5">
         <Heading id={id} className="text-xl font-semibold tracking-tight">
           {title}
         </Heading>
