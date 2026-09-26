@@ -377,34 +377,43 @@ export function TargetSummary({ team }: { team: Team }) {
         {/* Plain, not tinted by team type: the badge below already spends
             that colour on the type, and two different facts wearing one colour
             8px apart read as one. */}
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-medium text-muted-foreground">
-            ทีมเป้าหมาย
-          </p>
-          <h1
-            id="target-summary-title"
-            className="text-2xl font-semibold tracking-tight"
-          >
-            {team.title}
-          </h1>
-        </div>
-        {/* Bigger than the card's badges: here they sit under a text-2xl
-            title and beside a text-base lead, not in a dense grid. */}
-        <div className="flex flex-wrap gap-2">
-          <TeamTypeBadge className="h-6 px-2.5 text-sm" team={team} />
-          {team.tags?.map((tag) => (
-            <Badge
-              key={tag}
-              className="h-6 rounded-md px-2.5 text-sm"
-              variant="outline"
+        {/* Grouped with the badges below it, the way the counter page's
+            identity is: what the team is, then what it does. */}
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
+            <p className="text-xs font-medium text-muted-foreground">
+              ทีมเป้าหมาย
+            </p>
+            <h1
+              id="target-summary-title"
+              className="text-2xl font-semibold tracking-tight"
             >
-              {tag}
-            </Badge>
-          ))}
+              {team.title}
+            </h1>
+          </div>
+          {/* Bigger than the card's badges: here they sit under a text-2xl
+              title and beside a text-base lead, not in a dense grid. */}
+          <div className="flex flex-wrap gap-2">
+            <TeamTypeBadge className="h-6 px-2.5 text-sm" team={team} />
+            {team.tags?.map((tag) => (
+              <Badge
+                key={tag}
+                className="h-6 rounded-md px-2.5 text-sm"
+                variant="outline"
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
         </div>
         {/* text-base was chosen to fill the column beside the lineup. Stacked
-            there is no column to fill, so it would just be larger. */}
-        <p className="text-sm leading-relaxed text-muted-foreground lg:text-base">
+            there is no column to fill, so it would just be larger.
+
+            Capped at three lines like the counter page's lead, and for the
+            same reason: this column is 24rem at lg, so a write-up that runs
+            long here runs very long, and everything the guild reads after it
+            moves down. lh is the line box, so the cap holds at both sizes. */}
+        <p className="max-h-[3.5lh] overflow-y-auto [mask-image:linear-gradient(to_bottom,#000_calc(100%_-_0.4lh),calc(100%_-_0.34lh),transparent)] pr-2 pb-[0.5lh] text-sm leading-relaxed text-muted-foreground lg:text-base">
           {team.condition}
         </p>
       </div>

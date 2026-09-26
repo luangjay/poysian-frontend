@@ -1,3 +1,4 @@
+import { cva } from "class-variance-authority";
 import { Badge } from "@workspace/ui/components/badge";
 import { Item, ItemGroup } from "@workspace/ui/components/item";
 import { cn } from "@workspace/ui/lib/utils";
@@ -8,6 +9,91 @@ import { HeroPortrait, Lineup, PetChoice } from "./lineup";
 import { SectionHeading } from "./section-heading";
 import { CounterTeamRow, TeamHeroRail, TeamTypeBadge } from "./team-card";
 import { VariantPopover } from "./variant-popover";
+
+/**
+ * A win rate alone would rank 2/3 above 8/12, so the sample gates the scale:
+ * under four attempts nothing is claimed beyond "not enough yet". The rate is
+ * spent on the band rather than shown, because 7/8 invites arithmetic the
+ * reader should not have to do while a war clock is running — what they need
+ * is whether to spend one of three to five attacks on this.
+ */
+const confidenceSteps = 4;
+
+function teamConfidence(wins: number, attempts: number) {
+  // Nothing lit rather than one bar lit: too few tries is not a bad record,
+  // and a red bar would report one.
+  if (attempts < 4) return { level: 0, label: "ยังไม่รู้" } as const;
+  const rate = wins / attempts;
+  if (rate >= 0.85) return { level: 4, label: "ชัวร์ป้าบ" } as const;
+  if (rate >= 0.7) return { level: 3, label: "เอาอยู่" } as const;
+  if (rate >= 0.55) return { level: 2, label: "ลุ้นๆ" } as const;
+  return { level: 1, label: "YOLO" } as const;
+}
+
+/**
+ * The scale climbs red, yellow, green, blue — the same primitives the row
+ * badges already spend, with yellow mixed from the two it sits between. Colour
+ * is what makes a filled bar legible without counting it; the outline says how
+ * far the scale goes, the hue says where on it you are.
+ */
+const confidenceBarVariants = cva("h-2 w-5 rounded-full", {
+  variants: {
+    level: {
+      0: "bg-muted-foreground/20",
+      1: "bg-red",
+      2: "bg-yellow",
+      3: "bg-green",
+      4: "bg-blue",
+    },
+  },
+  defaultVariants: { level: 0 },
+});
+
+/**
+ * The bars carry it and the word says it, so the bars are decorative — a
+ * reader on a screen reader gets the same sentence without them.
+ */
+function ConfidenceMeter({
+  attempts,
+  wins,
+}: {
+  attempts: number;
+  wins: number;
+}) {
+  const { level, label } = teamConfidence(wins, attempts);
+
+  // Stacked with the word first: the column is a rail of text — title, badge,
+  // lead, caution all begin with words — and a shape at the start of a line
+  // breaks that edge. Below, the bars read as a summary of the word above
+  // them rather than a decoration beside it.
+  return (
+    <div className="flex flex-col items-start gap-1.5">
+      <p className="text-sm">
+        <span className="text-muted-foreground">ความมั่นใจ</span>{" "}
+        <span className="font-medium">{label}</span>
+      </p>
+      {/* The track is drawn, not implied. Bare segments only read as a scale
+          while some are empty — at four of four they are just an opaque bar,
+          with nothing to say the scale ended there. An outline around the
+          whole run gives the full state an edge to reach, so it reads as
+          filled rather than merely dark. Border, not ring: ring is this
+          project's elevation and focus mark. */}
+      <span
+        aria-hidden="true"
+        className="flex gap-0.5 rounded-full border p-0.5"
+      >
+        {Array.from({ length: confidenceSteps }, (_, index) => (
+          <span
+            key={index}
+            className={confidenceBarVariants({
+              level: index < level ? level : 0,
+            })}
+          />
+        ))}
+      </span>
+    </div>
+  );
+}
 
 /**
  * Opens only when there is something behind it. A package of one pet shows the
@@ -60,22 +146,25 @@ function TargetReference({ team }: { team: Team }) {
   // reference block can afford it.
   return (
     <Item variant="muted">
-      {/* Stacked at the ends, side by side in the middle. Seating the text
+      {/* Stacked below sm, side by side above it. Seating the text
           beside the pictures costs 516 — 14rem of text, a gap, and the 276 the
           pictures come to — and that is the whole rule, here and everywhere
           else on the route a team is drawn: a browse card at 300 stacks, a
-          counter row at 960 does not. Under sm the block is under 516; from lg
-          it is back in a 28rem track and under it again, which is what
-          lg:grid-cols-none is for. Widen that track past 516 and this is the
-          line to revisit.
+          counter row at 960 does not. From lg the full-width reference divides
+          evenly, capping identity at half while leaving the other half to the
+          lineup.
+
+          One container for the text and the pictures, not a surface around
+          each: the reference is a single quoted thing, and bg-muted is this
+          codebase's recessed fill generally rather than an artwork-only one.
+          Nesting a second surface inside it only restated the block.
 
           The label rides inside the identity column rather than being an
           ItemHeader or a row of its own. As an ItemHeader it was a second flex
           child of Item, and fit-content sizes a wrapping flex container as if
           nothing wraps, so its width got added to the pictures' instead of
-          stacking above them. As a row spanning both columns it cost the block
-          a full row of height for eleven characters, and pushed the pictures
-          down a row for nothing.
+          stacking above them. As a row spanning both columns it cost a full
+          row of height for eleven characters.
 
           The identity column is a flex column partly for that reason: it gets
           stretched to the pictures' height, and as a grid its auto rows took
@@ -83,25 +172,18 @@ function TargetReference({ team }: { team: Team }) {
           text was getting an extra 18px a line. A flex column does not stretch
           along its main axis, so there is nothing to undo.
 
-          The pictures' track is auto, which is the 276 they cost. A fixed
-          track only ever guessed at that, and the wrong guess wrapped
-          them. */}
-      <div className="grid w-full gap-3 sm:grid-cols-[minmax(14rem,1fr)_auto] sm:gap-x-4">
-        {/* Where the block hugs — only at lg now, in the 28rem column — it
-            is meant to end where the pictures do, and three things are
-            needed for that. `w-fit` on the wrapper asks for it; `w-0
-            min-w-full` stops the text counting toward the width it asks for;
-            and `overflow-wrap:anywhere` is what makes that stick for Thai —
-            without spaces the condition is one unbreakable run whose
-            min-content is wider than the roster, and a grid item's percentage
-            min-width falls back to exactly that during track sizing.
-
-            Everywhere else it stretches: hugging left a short block with a
-            ragged edge under a full-width lineup. Side by side the 1fr text
-            track absorbs the slack and the pictures pin right by being the
-            last track; stacked there is no second track, so the slack is the
-            row's own and the pictures take the middle of it. */}
-        <div className="flex w-0 min-w-full flex-col gap-3 [overflow-wrap:anywhere] sm:col-start-1">
+          From sm the pictures keep their intrinsic width and pin right. The
+          identity grows into the room they leave, but stops at half, so extra
+          room becomes the gutter between them rather than inflating either
+          side. Below sm they stack because neither half can preserve the
+          portraits at a useful size. The Item itself still spans the page: the
+          cap belongs to the identity, not to the reference surface around both
+          parts. */}
+      <div className="grid w-full gap-3 sm:flex sm:items-start sm:justify-between sm:gap-0">
+        {/* `w-0 min-w-full` stops an unbroken Thai sentence from contributing
+            a wider min-content size than the track it was given;
+            `overflow-wrap:anywhere` is what lets the text honour that width. */}
+        <div className="flex w-0 min-w-full flex-col gap-3 [overflow-wrap:anywhere] sm:w-auto sm:max-w-[50%] sm:min-w-0 sm:flex-1 sm:pr-4">
           <p className="text-xs font-medium text-muted-foreground">
             กำลังแก้ทีมนี้
           </p>
@@ -112,33 +194,15 @@ function TargetReference({ team }: { team: Team }) {
               </p>
               <TeamTypeBadge team={team} />
             </div>
-            <p className="text-sm leading-relaxed text-muted-foreground">
+            <p className="max-h-[2.5lh] overflow-y-auto [mask-image:linear-gradient(to_bottom,#000_calc(100%_-_0.4lh),calc(100%_-_0.34lh),transparent)] pr-2 pb-[0.5lh] text-sm leading-relaxed text-muted-foreground">
               {team.condition}
             </p>
           </div>
         </div>
-        {/* One grouping, everywhere. It is the lineup surface
-            in miniature at every width: the speed above the roster the way
-            that surface seats the pill in its corner, and the team's two other
-            facts in a column off to the side. A flat row of all four used to
-            take over in the middle band, and it was the one arrangement that
-            contradicted the surface — the only place the pill sat beside the
-            faces instead of over them. Dropping it also handed that band's
-            text 388px where the row had left it 238.
-
-            The stacked band is the only one with free space to spend — the
-            block fills the row there while the pictures want about 276 of it —
-            and it spends it the way the surface does. justify-between puts the
-            speed on one edge and the two cells on the other; the roster grows
-            a flex-1 group around itself and takes the middle by auto margins,
-            which is the surface's own rows exactly: pill in the corner, faces
-            centred, variants hard right. Anything else read as a cluster
-            adrift in a half-empty box.
-
-            Both are inert elsewhere. Side by side and at lg the track is the
-            pictures' own width, so there is no free space to grow into or
-            justify. */}
-        <div className="flex flex-wrap items-start justify-between gap-3 sm:col-start-2">
+        {/* The compact lineup is 300px wide: a 232px hero rail, 12px gap, and
+            56px variant stack. At the supported 360px viewport, the container
+            and Item padding leave 304px, so this stays on one row everywhere. */}
+        <div className="flex items-start justify-between gap-3 sm:ml-auto sm:w-fit sm:max-w-none sm:shrink-0 sm:justify-start sm:self-center">
           <div className="flex flex-1 flex-col items-start gap-2">
             <Lineup.Speed value={variants.speeds[0] ?? "???"} />
             <TeamHeroRail className="mx-auto" size="sm" team={team} />
@@ -299,34 +363,59 @@ export function CounterPlan({
                 type alone, which is also the case the target page has to
                 survive. */}
             <div className="flex flex-col gap-3 lg:max-w-sm">
-              <div className="flex flex-col gap-1">
-                <p className="text-xs font-medium text-muted-foreground">
-                  ทีมแก้
-                </p>
-                <h1
-                  id="counter-plan-title"
-                  className="text-2xl font-semibold tracking-tight"
-                >
-                  {team.title}
-                </h1>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <TeamTypeBadge className="h-6 px-2.5 text-sm" team={team} />
-                {team.tags?.map((tag) => (
-                  <Badge
-                    key={tag}
-                    className="h-6 rounded-md px-2.5 text-sm"
-                    variant="outline"
+              {/* Eyebrow, title and badges are one thing — what this team is
+                  — so they group tighter than they sit from the lead and the
+                  meter under them. Evenly spaced, the five parts read as five
+                  facts rather than identity, description, record. */}
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    ทีมแก้
+                  </p>
+                  <h1
+                    id="counter-plan-title"
+                    className="text-2xl font-semibold tracking-tight"
                   >
-                    {tag}
-                  </Badge>
-                ))}
+                    {team.title}
+                  </h1>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <TeamTypeBadge className="h-6 px-2.5 text-sm" team={team} />
+                  {team.tags?.map((tag) => (
+                    <Badge
+                      key={tag}
+                      className="h-6 rounded-md px-2.5 text-sm"
+                      variant="outline"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-              {/* text-base from lg to fill the column beside the lineup, the
-                  same step the target page's lead takes. */}
-              <p className="text-sm leading-relaxed text-muted-foreground lg:text-base">
+              {/* Three lines, then it scrolls — a write-up runs from one line
+                  to six depending on who left it, and six of them pushed the
+                  meter half a block down the column.
+
+                  max-height, not height, and so not ScrollArea: that
+                  component's viewport is `size-full`, which resolves against
+                  an auto-height root and leaves nothing to scroll, so capping
+                  it means giving it a fixed height — and a fixed height on a
+                  one-line write-up is two lines of blank with nothing to
+                  explain them. The styled scrollbar is not worth that.
+
+                  lh is the line box, so three of them is three lines at
+                  whichever size the breakpoint has landed on. The extra
+                  0.75rem is a faded peek at the next line; equal bottom
+                  padding lets the final line scroll completely above it. */}
+              <p className="max-h-[3.5lh] overflow-y-auto [mask-image:linear-gradient(to_bottom,#000_calc(100%_-_0.4lh),calc(100%_-_0.34lh),transparent)] pr-2 pb-[0.5lh] text-sm leading-relaxed text-muted-foreground lg:text-base">
                 {team.condition}
               </p>
+              {team.attempts ? (
+                <ConfidenceMeter
+                  attempts={team.attempts}
+                  wins={team.wins ?? 0}
+                />
+              ) : null}
             </div>
 
             {/* The note is a caption on the artwork, not a third thing beside

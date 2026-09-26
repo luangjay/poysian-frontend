@@ -73,6 +73,15 @@ export type Team = {
   skillOrder?: SkillOrderSet;
   variants?: TargetVariants;
   condition: string;
+  /** How it loses. `condition` is the plan; this is the way the plan breaks. */
+  risk?: string;
+  /** An attack is 1 of 3–5 a war and locks its heroes for the season, so a
+   *  plan's record is what decides whether it is worth one. */
+  attempts?: number;
+  wins?: number;
+  verifiedBy?: string;
+  /** ISO date; formatted where it is rendered. */
+  verifiedAt?: string;
   counters: number;
 };
 
@@ -141,7 +150,8 @@ export const targets: Team[] = [
         ["Croa"],
       ],
     },
-    condition: "ยืนช้า คุมจังหวะ และยื้อให้ยุนกอนออกสกิลตามสูตร",
+    condition:
+      "ยืนช้า คุมจังหวะ และยื้อให้ยุนกอนออกสกิลตามสูตร ทีมนี้ไม่รีบทำดาเมจในสามเทิร์นแรก แต่จะสะสมสถานะไว้ก่อน แล้วค่อยปล่อยชุดใหญ่ตอนที่ฝั่งตรงข้ามใช้ของป้องกันไปหมดแล้ว",
     counters: 4,
   },
   {
@@ -288,7 +298,13 @@ const counterFixtures: Team[] = [
       { hero: "ยุนกอน", slot: "B", order: 3 }
     ),
     variants: counterVariants("เร็ว", "1-4", ["Irin", "Pooki"]),
-    condition: "ให้โอม๊กเปิดก่อน แล้วโดยองตามเก็บเป้าหมายที่ถูกคุม",
+    condition:
+      "ให้โอม๊กเปิดก่อน แล้วโดยองตามเก็บเป้าหมายที่ถูกคุม แล้วโดยองตามเก็บเป้าหมายที่ถูกคุม แล้วโดยองตามเก็บเป้าหมายที่ถูกคุม แล้วโดยองตามเก็บเป้าหมายที่ถูกคุม แล้วโดยองตามเก็บเป้าหมายที่ถูกคุม",
+    risk: "ความเร็วเป้าหมายยังไม่ยืนยัน ถ้าเร็วกว่าที่บันทึก จะได้ออกก่อนโอม๊ก",
+    attempts: 8,
+    wins: 7,
+    verifiedBy: "BelXenonZ",
+    verifiedAt: "2026-09-19",
     counters: 0,
   },
   {
@@ -309,6 +325,11 @@ const counterFixtures: Team[] = [
     ),
     variants: counterVariants("ช้า", "1-4", ["Lulu"]),
     condition: "ฮายอนต้องผ่านชุดแรกก่อน แล้วคริสค่อยสวนกลับ",
+    risk: "ถ้าฝั่งรับสลับเป็นแผน 3–2 ฮายอนจะรับสามตัวพร้อมกันไม่ไหว",
+    attempts: 6,
+    wins: 4,
+    verifiedBy: "BelXenonZ",
+    verifiedAt: "2026-09-12",
     counters: 0,
   },
   {
@@ -329,6 +350,11 @@ const counterFixtures: Team[] = [
     ),
     variants: counterVariants("???", "4-1", ["Pooki", "Irin"]),
     condition: "ฮายอนยืนค้ำให้พาลานอสมีจังหวะกดดันต่อเนื่อง",
+    risk: "สัตว์เลี้ยงฝั่งรับที่ล้างสถานะ ทำให้แรงกดดันของพาลานอสหลุดทุกรอบ",
+    attempts: 5,
+    wins: 4,
+    verifiedBy: "Nongtoei",
+    verifiedAt: "2026-09-15",
     counters: 0,
   },
   {
@@ -349,6 +375,11 @@ const counterFixtures: Team[] = [
     ),
     variants: counterVariants("???", "2-3", ["Croa"]),
     condition: "ให้สไปค์คุมก่อน เคลลิดิสจึงตามปิดจังหวะ",
+    risk: "พ้นเทิร์นสามไปแล้วสกิลจะสุ่มเอง เกมที่ยืดกว่านั้นคุมไม่ต่อเนื่อง",
+    attempts: 9,
+    wins: 4,
+    verifiedBy: "Nongtoei",
+    verifiedAt: "2026-09-21",
     counters: 0,
   },
   {
@@ -369,6 +400,11 @@ const counterFixtures: Team[] = [
     ),
     variants: counterVariants("ช้า", "2-3", ["Irin", "Windy"]),
     condition: "ชนะด้วยการคุมยาว ไม่จำเป็นต้องรีบเปิดเทิร์นแรก",
+    risk: "แผนนี้เดาความเร็วจากครั้งที่เคยแพ้ ยังไม่มีใครเห็นของจริง",
+    attempts: 11,
+    wins: 10,
+    verifiedBy: "BelXenonZ",
+    verifiedAt: "2026-09-23",
     counters: 0,
   },
   {
@@ -389,6 +425,11 @@ const counterFixtures: Team[] = [
     ),
     variants: counterVariants("เร็ว", "2-3", ["Pooki", "Croa", "Irin"]),
     condition: "เร่งโอม๊กและโดยองให้ปิดก่อนทีมเป้าหมายตั้งตัว",
+    risk: "ถ้าฝั่งรับมีตัวฟื้นฟู จะปิดไม่จบก่อนสกิลหมดคิวที่ตั้งไว้",
+    attempts: 7,
+    wins: 5,
+    verifiedBy: "Jaokhun",
+    verifiedAt: "2026-09-18",
     counters: 0,
   },
   {
@@ -409,6 +450,11 @@ const counterFixtures: Team[] = [
     ),
     variants: counterVariants("???", "1-4", ["Croa", "Pooki"]),
     condition: "เก็บสกิลหลักไว้หลังทีมรับผ่านจังหวะแรก",
+    risk: "ถ้าฝั่งรับไม่เปิดสวนมา แผนนี้เสียสองเทิร์นแรกไปเปล่า ๆ",
+    attempts: 4,
+    wins: 3,
+    verifiedBy: "Jaokhun",
+    verifiedAt: "2026-09-09",
     counters: 0,
   },
   {
@@ -429,6 +475,11 @@ const counterFixtures: Team[] = [
     ),
     variants: counterVariants("เร็ว", "3-2", ["Lulu", "Irin"]),
     condition: "เจาะตัวคุมแถวหลัง ก่อนปล่อยโดยองปิดงาน",
+    risk: "แผน 3–2 ของฝั่งรับจะดันตัวคุมไปหลังสุดจนเจาะไม่ถึง",
+    attempts: 10,
+    wins: 8,
+    verifiedBy: "BelXenonZ",
+    verifiedAt: "2026-09-22",
     counters: 0,
   },
   {
@@ -449,6 +500,11 @@ const counterFixtures: Team[] = [
     ),
     variants: counterVariants("ช้า", "1-4", ["Irin", "Pooki", "Windy"]),
     condition: "ฮายอนกับสกัลด์รับดาเมจก่อน แล้วค่อยยุนกอนพลิกจังหวะ",
+    risk: "ถ้าฝั่งรับเปลี่ยนสัตว์เลี้ยงเป็นตัวเร่งความเร็ว ลำดับพลิกทั้งกระดาน",
+    attempts: 6,
+    wins: 5,
+    verifiedBy: "Nongtoei",
+    verifiedAt: "2026-09-16",
     counters: 0,
   },
   {
@@ -468,7 +524,13 @@ const counterFixtures: Team[] = [
       { hero: "โอม๊ก", slot: "A", order: 3 }
     ),
     variants: counterVariants("ช้า", "2-3", ["Windy", "Irin"]),
-    condition: "เน้นยืนรอดและบีบให้คู่ต่อสู้หมดจังหวะก่อน",
+    condition:
+      "เน้นยืนรอดและบีบให้คู่ต่อสู้หมดจังหวะก่อน เปิดเกมด้วยการตั้งรับเต็มที่ อย่าเพิ่งเร่งออกสกิลใหญ่ รอให้ฝั่งรับใช้ของหนักไปก่อนแล้วค่อยสวนกลับทีละตัว ถ้าถึงเทิร์นที่หกแล้วยังไม่มีใครล้ม ให้ดันแถวหน้าเข้าไปแลกเพื่อบีบจังหวะ",
+    risk: "ทั้งสองฝ่ายยืนรอดพอกันได้ แล้วจบด้วยหมดเวลาแทนที่จะชนะ",
+    attempts: 12,
+    wins: 9,
+    verifiedBy: "Jaokhun",
+    verifiedAt: "2026-09-24",
     counters: 0,
   },
   {
@@ -489,6 +551,11 @@ const counterFixtures: Team[] = [
     ),
     variants: counterVariants("เร็ว", "3-2", ["Pooki", "Croa", "Irin"]),
     condition: "ใช้เมื่อมั่นใจว่าแถวหลังปลอดภัยและเปิดเกมได้ก่อน",
+    risk: "แถวหน้าว่างทั้งแถว สกิลเจาะหลังของฝั่งรับจะไม่มีอะไรกั้น",
+    attempts: 3,
+    wins: 2,
+    verifiedBy: "Nongtoei",
+    verifiedAt: "2026-09-08",
     counters: 0,
   },
 ];

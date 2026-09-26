@@ -74,7 +74,13 @@ export default async function DesignPage({
       {/* Three views, named rather than derived: which one you get is the
           whole of what the query string decides, and it is decided here
           instead of inside a component that takes every view's props. */}
-      <main id="content" className="container flex flex-col gap-8 pt-6 pb-8">
+      {/* Tall enough to push the footer to the bottom on a short view, and
+          no taller: svh rather than vh so a mobile browser's collapsing
+          toolbar does not leave a scrollable sliver. */}
+      <main
+        id="content"
+        className="container flex min-h-[calc(100svh-var(--design-header-block-size))] flex-col gap-8 pt-6 pb-8"
+      >
         {counter && target ? (
           <CounterPlan counters={counters} target={target} team={counter} />
         ) : target ? (

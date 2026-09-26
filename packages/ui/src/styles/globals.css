@@ -45,6 +45,8 @@
   --color-foreground: var(--foreground);
   --color-background: var(--background);
   --color-red: var(--red);
+  --color-yellow: var(--yellow);
+  --color-green: var(--green);
   --color-blue: var(--blue);
   --color-magic: var(--magic);
   --color-offensive: var(--offensive);
@@ -96,7 +98,12 @@
   --sidebar-ring: oklch(0.714 0.014 41.2);
 
   --red: oklch(63.7% 0.237 25.331);
+  --green: oklch(62.7% 0.194 149.214);
   --blue: oklch(62.3% 0.214 259.815);
+  /* Mixed rather than picked, so it stays the midpoint of the two if either
+     is retuned. In oklch the hue path from red to green runs through the
+     yellows; srgb would average the channels instead and land on olive. */
+  --yellow: color-mix(in oklch, var(--red), var(--green));
   --offensive: oklch(0.4965 0.1616 29.87);
   --magic: oklch(0.4744 0.1358 259.98);
   --defensive: oklch(0.4993 0.0832 49.52);

@@ -151,10 +151,14 @@ export function TeamHeroRail({
 
   return (
     // No width, so `px` is a real knob: it widens the group rather than
-    // squeezing `shrink-0` portraits, and it is how far the rail fades.
+    // squeezing `shrink-0` portraits, and it is how far the rail fades. One
+    // value at every width — it used to step to px-6 at lg, which made the
+    // same three faces sit on a rail 24px longer on a desktop than a phone
+    // for no reason either reader could see.
     <div
       className={cn(
-        "relative flex shrink-0 items-center gap-2 px-3 lg:gap-3 lg:px-6",
+        "relative flex shrink-0 items-center px-6",
+        size === "sm" ? "gap-2" : "gap-3",
         className
       )}
     >
