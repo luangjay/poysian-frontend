@@ -59,7 +59,7 @@ function TargetReference({ team }: { team: Team }) {
   // inside it grows — the surplus lands under the pictures, which is where a
   // reference block can afford it.
   return (
-    <Item className="lg:h-full" variant="muted">
+    <Item variant="muted">
       {/* Stacked at the ends, side by side in the middle. Seating the text
           beside the pictures costs 516 — 14rem of text, a gap, and the 276 the
           pictures come to — and that is the whole rule, here and everywhere
@@ -86,7 +86,7 @@ function TargetReference({ team }: { team: Team }) {
           The pictures' track is auto, which is the 276 they cost. A fixed
           track only ever guessed at that, and the wrong guess wrapped
           them. */}
-      <div className="grid w-full gap-3 sm:grid-cols-[minmax(14rem,1fr)_auto] sm:gap-x-4 lg:grid-cols-none">
+      <div className="grid w-full gap-3 sm:grid-cols-[minmax(14rem,1fr)_auto] sm:gap-x-4">
         {/* Where the block hugs — only at lg now, in the 28rem column — it
             is meant to end where the pictures do, and three things are
             needed for that. `w-fit` on the wrapper asks for it; `w-0
@@ -101,7 +101,7 @@ function TargetReference({ team }: { team: Team }) {
             track absorbs the slack and the pictures pin right by being the
             last track; stacked there is no second track, so the slack is the
             row's own and the pictures take the middle of it. */}
-        <div className="flex w-0 min-w-full flex-col gap-3 [overflow-wrap:anywhere] sm:col-start-1 lg:col-auto">
+        <div className="flex w-0 min-w-full flex-col gap-3 [overflow-wrap:anywhere] sm:col-start-1">
           <p className="text-xs font-medium text-muted-foreground">
             กำลังแก้ทีมนี้
           </p>
@@ -138,7 +138,7 @@ function TargetReference({ team }: { team: Team }) {
             Both are inert elsewhere. Side by side and at lg the track is the
             pictures' own width, so there is no free space to grow into or
             justify. */}
-        <div className="flex flex-wrap items-start justify-between gap-3 sm:col-start-2 lg:col-auto">
+        <div className="flex flex-wrap items-start justify-between gap-3 sm:col-start-2">
           <div className="flex flex-1 flex-col items-start gap-2">
             <Lineup.Speed value={variants.speeds[0] ?? "ปกติ"} />
             <TeamHeroRail className="mx-auto" size="sm" team={team} />
@@ -280,12 +280,12 @@ export function CounterPlan({
             between page sections. At gap-4 it matched the counter's internals
             exactly, so the target read as one more item in the plan's stack
             rather than the other half of a matchup. */}
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,28rem)_auto_auto] lg:justify-between lg:gap-x-8 lg:gap-y-2">
+        <div className="flex flex-col gap-6">
           <section
             aria-labelledby="counter-plan-title"
-            className="order-3 flex flex-col gap-4 lg:order-none lg:contents"
+            className="order-3 flex flex-col gap-4"
           >
-            <div className="flex flex-col gap-2.5 lg:col-start-1 lg:row-start-1 lg:mb-2">
+            <div className="flex flex-col gap-2.5">
               <h1
                 id="counter-plan-title"
                 className="text-2xl font-semibold tracking-tight"
@@ -313,8 +313,8 @@ export function CounterPlan({
             {/* The note is a caption on the artwork, not a third thing beside
                 it, so it sits closer to the lineup than the lineup sits to the
                 text above it. */}
-            <div className="flex flex-col gap-2 lg:contents">
-              <Lineup.Surface className="lg:col-start-1 lg:row-start-2">
+            <div className="flex flex-col gap-2">
+              <Lineup.Surface>
                 <Lineup.Rows
                   HeroTile={CounterHeroTile}
                   loading="eager"
@@ -347,7 +347,7 @@ export function CounterPlan({
               {/* The portraits open a dialog and nothing about a portrait says
                 so — a hover lift answers a pointer, but touch gets no such
                 hint, so the affordance is spelled out. */}
-              <p className="text-sm text-muted-foreground lg:col-start-1 lg:row-start-3">
+              <p className="text-sm text-muted-foreground">
                 คลิกที่ตัวละครเพื่อดูรายละเอียด
               </p>
             </div>
@@ -377,18 +377,15 @@ export function CounterPlan({
               The explicit order is because the target is placed last in source
               — the counter owns the h1 and leads — while stacked it has to
               come first, with the mark between the two. */}
-          <div
-            aria-hidden="true"
-            className="order-2 flex items-center gap-3 lg:order-none lg:col-start-2 lg:row-start-2 lg:flex-col lg:self-stretch"
-          >
-            <span className="h-px flex-1 bg-linear-to-r from-transparent to-border lg:h-auto lg:w-px lg:bg-linear-to-b" />
+          <div aria-hidden="true" className="order-2 flex items-center gap-3">
+            <span className="h-px flex-1 bg-linear-to-r from-transparent to-border" />
             <span className="text-xs font-medium tracking-[0.25em] text-muted-foreground uppercase">
               VS
             </span>
-            <span className="h-px flex-1 bg-linear-to-r from-border to-transparent lg:h-auto lg:w-px lg:bg-linear-to-b" />
+            <span className="h-px flex-1 bg-linear-to-r from-border to-transparent" />
           </div>
 
-          <div className="order-1 w-full lg:order-none lg:col-start-3 lg:row-start-2 lg:w-fit lg:max-w-md lg:self-stretch">
+          <div className="order-1 w-full">
             <TargetReference team={target} />
           </div>
         </div>
