@@ -24,7 +24,7 @@ import {
   ItemTitle,
 } from "@workspace/ui/components/item";
 import { cn } from "@workspace/ui/lib/utils";
-import { teamVariants, type Team } from "./_data";
+import { teamTypeLabel, teamVariants, type Team } from "./_data";
 import { HeroPortrait, Lineup, PetSummary } from "./lineup";
 
 /**
@@ -33,7 +33,7 @@ import { HeroPortrait, Lineup, PetSummary } from "./lineup";
  */
 const teamTypeBadgeVariants = cva("rounded-full", {
   variants: {
-    targetType: {
+    teamType: {
       defensive: "bg-defensive/10 text-defensive",
       offensive: "bg-offensive/10 text-offensive",
       magic: "bg-magic/10 text-magic",
@@ -48,16 +48,15 @@ export function TeamTypeBadge({
 }: {
   /** For sizing only — the colour is the badge's whole job. */
   className?: string;
-  team: Pick<Team, "targetType" | "type">;
+  team: Pick<Team, "teamType">;
 }) {
   return (
     <Badge
       className={cn(
-        teamTypeBadgeVariants({ targetType: team.targetType, className })
+        teamTypeBadgeVariants({ teamType: team.teamType, className })
       )}
-      variant={team.targetType ? "default" : "secondary"}
     >
-      {team.type}
+      {teamTypeLabel(team.teamType)}
     </Badge>
   );
 }
@@ -85,7 +84,7 @@ function TeamTagRow({
   team,
 }: {
   children?: ReactNode;
-  team: Pick<Team, "tags" | "targetType" | "type">;
+  team: Pick<Team, "tags" | "teamType">;
 }) {
   const [leadTag] = team.tags ?? [];
   const extraTagCount = Math.max((team.tags?.length ?? 0) - 1, 0);
@@ -203,7 +202,14 @@ export function CounterTeamRow({
             {rank}
           </span>
           <div className="flex min-w-0 flex-col gap-1">
-            <ItemTitle title={team.title}>{team.title}</ItemTitle>
+            {/* Inline with the name rather than off in its own column: after
+                an attack the heroes and pets lock for the rest of the season,
+                so which type a plan spends is read while choosing between
+                plans, not after. */}
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <ItemTitle title={team.title}>{team.title}</ItemTitle>
+              <TeamTypeBadge team={team} />
+            </div>
             <ItemDescription title={team.condition}>
               {team.condition}
             </ItemDescription>

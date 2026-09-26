@@ -6,13 +6,21 @@ export type Hero = {
   image?: string;
 };
 export const targetTeamTypes = [
-  { value: "defensive", label: "ถึก" },
   { value: "offensive", label: "กายภาพ" },
   { value: "magic", label: "เวท" },
-  { value: "other", label: "อื่น ๆ" },
+  { value: "defensive", label: "ถึก" },
+  { value: "other", label: "อื่นๆ" },
 ] as const;
 
-export type TargetTeamType = (typeof targetTeamTypes)[number]["value"];
+export type TeamType = (typeof targetTeamTypes)[number]["value"];
+
+/**
+ * The only place a team type is spelled. Records used to carry their own
+ * `type` string beside the key, which drifted: the filter chips offered
+ * ถึก/กายภาพ while the badges on the teams they filtered said ป้องกัน/โจมตี.
+ */
+export const teamTypeLabel = (teamType: TeamType) =>
+  targetTeamTypes.find((option) => option.value === teamType)!.label;
 
 export const targetFormations = [
   { value: "1-4", label: "1–4" },
@@ -25,7 +33,7 @@ export type TargetFormation = (typeof targetFormations)[number]["value"];
 
 /** The order the game's own picker uses. Shared so a read-only view of the
  *  scale and the picker itself cannot disagree about what the scale is. */
-export const targetSpeeds = ["ปกติ", "ช้า", "เร็ว"] as const;
+export const targetSpeeds = ["???", "ช้า", "เร็ว"] as const;
 
 export type TargetSpeed = (typeof targetSpeeds)[number];
 
@@ -57,8 +65,7 @@ export type TargetVariants = {
 export type Team = {
   id: string;
   title: string;
-  type: string;
-  targetType?: TargetTeamType;
+  teamType: TeamType;
   tags?: string[];
   heroes: Hero[];
   pet: string;
@@ -117,8 +124,7 @@ export const targets: Team[] = [
   {
     id: "slow-yun-gon-formula",
     title: "เวทช้ายุนกอนตามสูตร",
-    type: "เวท",
-    targetType: "magic",
+    teamType: "magic",
     tags: ["วัดเลือด", "คุมสถานะ"],
     heroes: [
       hero("ยอนฮี", "back"),
@@ -127,7 +133,7 @@ export const targets: Team[] = [
     ],
     pet: "Pooki",
     variants: {
-      speeds: ["ปกติ", "เร็ว", "ช้า"],
+      speeds: ["???", "เร็ว", "ช้า"],
       formations: ["1-4", "2-3", "3-2"],
       petPackages: [
         ["Pooki", "Irin"],
@@ -141,8 +147,7 @@ export const targets: Team[] = [
   {
     id: "omik-magic",
     title: "เวทโอม๊ก",
-    type: "เวท",
-    targetType: "magic",
+    teamType: "magic",
     tags: ["คุมสถานะ", "วัดเลือด"],
     heroes: [
       hero("ยุนกอน", "back"),
@@ -151,7 +156,7 @@ export const targets: Team[] = [
     ],
     pet: "Pooki",
     variants: {
-      speeds: ["ช้า", "ปกติ"],
+      speeds: ["ช้า", "???"],
       formations: ["1-4", "2-3"],
       petPackages: [["Pooki", "Irin"], ["Irin"]],
     },
@@ -161,8 +166,7 @@ export const targets: Team[] = [
   {
     id: "yun-gon-dyong",
     title: "ยุนกอนโดยองปิดเกม",
-    type: "โจมตี",
-    targetType: "offensive",
+    teamType: "offensive",
     tags: ["ปิดงาน", "เน้นความเร็ว"],
     heroes: [
       hero("ยุนกอน", "back"),
@@ -171,7 +175,7 @@ export const targets: Team[] = [
     ],
     pet: "Pooki",
     variants: {
-      speeds: ["เร็ว", "ปกติ"],
+      speeds: ["เร็ว", "???"],
       formations: ["1-4", "2-3"],
       petPackages: [
         ["Pooki", "Irin"],
@@ -184,8 +188,7 @@ export const targets: Team[] = [
   {
     id: "hayon-magic",
     title: "เวทฮายอน",
-    type: "เวท",
-    targetType: "magic",
+    teamType: "magic",
     tags: ["คุมสถานะ", "เน้นความเร็ว"],
     heroes: [
       hero("ยอนฮี", "back"),
@@ -194,7 +197,7 @@ export const targets: Team[] = [
     ],
     pet: "Irin",
     variants: {
-      speeds: ["เร็ว", "ปกติ", "ช้า"],
+      speeds: ["เร็ว", "???", "ช้า"],
       formations: ["3-2", "2-3", "1-4"],
       petPackages: [
         ["Irin", "Pooki"],
@@ -207,8 +210,7 @@ export const targets: Team[] = [
   {
     id: "fast-skald",
     title: "เวทไวสกัลด์",
-    type: "ป้องกัน",
-    targetType: "defensive",
+    teamType: "defensive",
     tags: ["สวนกลับ", "วัดเลือด"],
     heroes: [
       hero("ยุนกอน", "back"),
@@ -217,7 +219,7 @@ export const targets: Team[] = [
     ],
     pet: "Irin",
     variants: {
-      speeds: ["เร็ว", "ปกติ"],
+      speeds: ["เร็ว", "???"],
       formations: ["2-3", "1-4"],
       petPackages: [["Irin", "Pooki", "Windy"], ["Pooki"]],
     },
@@ -227,8 +229,7 @@ export const targets: Team[] = [
   {
     id: "omik-dyong-control",
     title: "โอม๊กโดยองคุมเกม",
-    type: "อื่น ๆ",
-    targetType: "other",
+    teamType: "other",
     tags: ["คุมสถานะ", "ปิดงาน"],
     heroes: [
       hero("ยุนกอน", "back"),
@@ -237,7 +238,7 @@ export const targets: Team[] = [
     ],
     pet: "Croa",
     variants: {
-      speeds: ["ปกติ", "เร็ว"],
+      speeds: ["???", "เร็ว"],
       formations: ["2-3", "1-4", "4-1"],
       petPackages: [
         ["Croa", "Irin", "Pooki"],
@@ -250,8 +251,7 @@ export const targets: Team[] = [
   {
     id: "kris-pallanus-rush",
     title: "คริสพาลานอสบุกเร็ว",
-    type: "กายภาพ",
-    targetType: "offensive",
+    teamType: "offensive",
     tags: ["เน้นความเร็ว", "ปิดงาน"],
     heroes: [
       hero("คริส", "back"),
@@ -274,7 +274,7 @@ const counterFixtures: Team[] = [
   {
     id: "omik-opener",
     title: "เวทโอม๊กเปิดก่อน",
-    type: "ทีมแก้",
+    teamType: "magic",
     heroes: [
       hero("ยุนกอน", "back"),
       hero("โอม๊ก", "front"),
@@ -294,7 +294,7 @@ const counterFixtures: Team[] = [
   {
     id: "uju-chris-slow",
     title: "เวทช้าฮายอนคริส",
-    type: "ทีมแก้",
+    teamType: "defensive",
     heroes: [
       hero("ซอรัน", "back"),
       hero("ฮายอน", "front"),
@@ -314,7 +314,7 @@ const counterFixtures: Team[] = [
   {
     id: "uju-palanos",
     title: "เวทฮายอนพาลานอส",
-    type: "ทีมแก้",
+    teamType: "other",
     heroes: [
       hero("ฮายอน", "back"),
       hero("พาลานอส", "back"),
@@ -327,14 +327,14 @@ const counterFixtures: Team[] = [
       { hero: "ไอลีน", slot: "T", order: 2 },
       { hero: "ฮายอน", slot: "A", order: 3 }
     ),
-    variants: counterVariants("ปกติ", "4-1", ["Pooki", "Irin"]),
+    variants: counterVariants("???", "4-1", ["Pooki", "Irin"]),
     condition: "ฮายอนยืนค้ำให้พาลานอสมีจังหวะกดดันต่อเนื่อง",
     counters: 0,
   },
   {
     id: "spike-kledis",
     title: "เวทสไปค์เคลลิดิส",
-    type: "ทีมแก้",
+    teamType: "other",
     heroes: [
       hero("สไปค์", "back"),
       hero("เคลลิดิส", "front"),
@@ -347,14 +347,14 @@ const counterFixtures: Team[] = [
       { hero: "เคลลิดิส", slot: "B", order: 2 },
       { hero: "ฮายอน", slot: "A", order: 3 }
     ),
-    variants: counterVariants("ปกติ", "2-3", ["Croa"]),
+    variants: counterVariants("???", "2-3", ["Croa"]),
     condition: "ให้สไปค์คุมก่อน เคลลิดิสจึงตามปิดจังหวะ",
     counters: 0,
   },
   {
     id: "slow-yun-gon-control",
     title: "เวทช้ายุนกอนคุมเกม",
-    type: "ทีมแก้",
+    teamType: "magic",
     heroes: [
       hero("ยุนกอน", "back"),
       hero("ฮายอน", "front"),
@@ -374,7 +374,7 @@ const counterFixtures: Team[] = [
   {
     id: "fast-skald-finish",
     title: "เวทไวสกัลด์ปิดเกม",
-    type: "ทีมแก้",
+    teamType: "offensive",
     heroes: [
       hero("สกัลด์", "back"),
       hero("โดยอง", "front"),
@@ -394,7 +394,7 @@ const counterFixtures: Team[] = [
   {
     id: "omik-counterplay",
     title: "เวทโอม๊กกันสวน",
-    type: "ทีมแก้",
+    teamType: "defensive",
     heroes: [
       hero("โอม๊ก", "back"),
       hero("ฮายอน", "front"),
@@ -407,14 +407,14 @@ const counterFixtures: Team[] = [
       { hero: "โอม๊ก", slot: "T", order: 2 },
       { hero: "ฮายอน", slot: "A", order: 3 }
     ),
-    variants: counterVariants("ปกติ", "1-4", ["Croa", "Pooki"]),
+    variants: counterVariants("???", "1-4", ["Croa", "Pooki"]),
     condition: "เก็บสกิลหลักไว้หลังทีมรับผ่านจังหวะแรก",
     counters: 0,
   },
   {
     id: "hayon-backline",
     title: "เวทยอนฮีทะลุหลัง",
-    type: "ทีมแก้",
+    teamType: "offensive",
     heroes: [
       hero("ยอนฮี", "back"),
       hero("โดยอง", "back"),
@@ -434,7 +434,7 @@ const counterFixtures: Team[] = [
   {
     id: "uju-frontline",
     title: "เวทฮายอนรับหน้า",
-    type: "ทีมแก้",
+    teamType: "defensive",
     heroes: [
       hero("ยุนกอน", "back"),
       hero("ฮายอน", "front"),
@@ -454,7 +454,7 @@ const counterFixtures: Team[] = [
   {
     id: "slow-long-game",
     title: "เวทช้ายืนยาว",
-    type: "ทีมแก้",
+    teamType: "defensive",
     heroes: [
       hero("ยุนกอน", "back"),
       hero("โอม๊ก", "front"),
@@ -474,7 +474,7 @@ const counterFixtures: Team[] = [
   {
     id: "three-backline",
     title: "เวทสามแถวหลัง",
-    type: "ทีมแก้",
+    teamType: "magic",
     heroes: [
       hero("ยอนฮี", "back"),
       hero("ยุนกอน", "back"),
@@ -502,7 +502,7 @@ export const targetTags = Array.from(
 export function teamVariants(team: Team): TargetVariants {
   return (
     team.variants ?? {
-      speeds: ["ปกติ"],
+      speeds: ["???"],
       formations: ["2-3"],
       petPackages: [[team.pet]],
     }

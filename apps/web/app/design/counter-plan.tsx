@@ -140,7 +140,7 @@ function TargetReference({ team }: { team: Team }) {
             justify. */}
         <div className="flex flex-wrap items-start justify-between gap-3 sm:col-start-2">
           <div className="flex flex-1 flex-col items-start gap-2">
-            <Lineup.Speed value={variants.speeds[0] ?? "ปกติ"} />
+            <Lineup.Speed value={variants.speeds[0] ?? "???"} />
             <TeamHeroRail className="mx-auto" size="sm" team={team} />
           </div>
           <div className="flex flex-col gap-2">
@@ -281,31 +281,50 @@ export function CounterPlan({
             exactly, so the target read as one more item in the plan's stack
             rather than the other half of a matchup. */}
         <div className="flex flex-col gap-6">
+          {/* The target page's own split, reused rather than reinvented: a
+              1fr text column and a 28rem lineup. Both pages then describe a
+              team the same way, and the lineup lands back at the width it was
+              tuned for — full-bleed it was 960 holding a 384 row, which is
+              230px of empty surface a side, and the 28rem track puts its rows
+              at 332 with none. */}
           <section
             aria-labelledby="counter-plan-title"
-            className="order-3 flex flex-col gap-4"
+            className="order-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-start lg:gap-x-8"
           >
-            <div className="flex flex-col gap-2.5">
-              <h1
-                id="counter-plan-title"
-                className="text-2xl font-semibold tracking-tight"
-              >
-                {team.title}
-              </h1>
-              {team.tags?.length ? (
-                <div className="flex flex-wrap gap-2">
-                  {team.tags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      className="h-6 rounded-md px-2.5 text-sm"
-                      variant="outline"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              ) : null}
-              <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+            {/* The target page's identity block, part for part: eyebrow,
+                title, badges, lead. The type badge is the one fact a counter
+                carries that the picture does not — heroes and pets lock for
+                the rest of the war, so which type a plan spends is what a
+                player is budgeting. Counters have no tags, so this row is the
+                type alone, which is also the case the target page has to
+                survive. */}
+            <div className="flex flex-col gap-3 lg:max-w-sm">
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-medium text-muted-foreground">
+                  ทีมแก้
+                </p>
+                <h1
+                  id="counter-plan-title"
+                  className="text-2xl font-semibold tracking-tight"
+                >
+                  {team.title}
+                </h1>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <TeamTypeBadge className="h-6 px-2.5 text-sm" team={team} />
+                {team.tags?.map((tag) => (
+                  <Badge
+                    key={tag}
+                    className="h-6 rounded-md px-2.5 text-sm"
+                    variant="outline"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              {/* text-base from lg to fill the column beside the lineup, the
+                  same step the target page's lead takes. */}
+              <p className="text-sm leading-relaxed text-muted-foreground lg:text-base">
                 {team.condition}
               </p>
             </div>
@@ -332,7 +351,7 @@ export function CounterPlan({
                       title="ลำดับความเร็ว"
                       triggerLabel="ดูลำดับความเร็ว"
                     >
-                      <Lineup.Speed value={variants.speeds[0] ?? "ปกติ"} />
+                      <Lineup.Speed value={variants.speeds[0] ?? "???"} />
                     </VariantPopover>
                   }
                   pets={<PetCell pets={pets} />}

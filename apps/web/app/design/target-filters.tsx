@@ -24,18 +24,13 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@workspace/ui/components/toggle-group";
-import {
-  targetTags,
-  targetTeamTypes,
-  type TargetTeamType,
-  type Team,
-} from "./_data";
+import { targetTags, targetTeamTypes, type Team, type TeamType } from "./_data";
 
 export type TargetFilters = {
   onlyResolved: boolean;
   query: string;
   tags: string[];
-  teamTypes: TargetTeamType[];
+  teamTypes: TeamType[];
 };
 
 export const noTargetFilters: TargetFilters = {
@@ -55,8 +50,8 @@ export function filterTargets(targets: Team[], filters: TargetFilters) {
   return targets.filter((team) => {
     if (
       filters.teamTypes.length &&
-      (team.targetType === undefined ||
-        !filters.teamTypes.includes(team.targetType))
+      (team.teamType === undefined ||
+        !filters.teamTypes.includes(team.teamType))
     ) {
       return false;
     }
@@ -83,7 +78,7 @@ export function filterTargets(targets: Team[], filters: TargetFilters) {
  */
 const teamTypeToggleVariants = cva("rounded-full", {
   variants: {
-    targetType: {
+    teamType: {
       defensive:
         "border-defensive/30 text-defensive hover:border-defensive/40 hover:bg-defensive/10! hover:text-defensive aria-pressed:border-transparent! aria-pressed:bg-defensive/10! aria-pressed:text-defensive!",
       offensive:
@@ -139,7 +134,7 @@ export function TargetFilterPanel({
               multiple
               value={filters.teamTypes}
               onValueChange={(values) =>
-                onChange({ ...filters, teamTypes: values as TargetTeamType[] })
+                onChange({ ...filters, teamTypes: values as TeamType[] })
               }
               size="sm"
               variant="outline"
@@ -151,7 +146,7 @@ export function TargetFilterPanel({
                   key={teamType.value}
                   value={teamType.value}
                   className={teamTypeToggleVariants({
-                    targetType: teamType.value,
+                    teamType: teamType.value,
                   })}
                 >
                   {teamType.label}

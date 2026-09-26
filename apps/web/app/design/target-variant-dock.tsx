@@ -348,12 +348,12 @@ function TargetVariantDock({
 
 export function TargetSummary({ team }: { team: Team }) {
   const variants: TargetVariants = team.variants ?? {
-    speeds: ["ปกติ"],
+    speeds: ["???"],
     formations: ["2-3"],
     petPackages: [[team.pet]],
   };
   const [selectedSpeed, setSelectedSpeed] = useState(
-    variants.speeds[0] ?? "ปกติ"
+    variants.speeds[0] ?? "???"
   );
   const [selectedFormation, setSelectedFormation] = useState(
     variants.formations[0] ?? "2-3"
